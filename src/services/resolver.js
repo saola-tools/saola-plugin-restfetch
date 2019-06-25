@@ -18,6 +18,9 @@ function Service(params = {}) {
 
   let pluginCfg = lodash.get(params, ['sandboxConfig'], {});
   let mappings = pluginCfg.mappings || {};
+  if (lodash.isString(pluginCfg.mappingStore)) {
+    mappings = lodash.assign(mappings, require(pluginCfg.mappingStore))
+  }
   let services = {};
 
   let ticketDeliveryDelay = pluginCfg.ticketDeliveryDelay || null;
