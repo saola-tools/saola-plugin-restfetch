@@ -1,6 +1,10 @@
 module.exports = {
   enabled: true,
   methods: {
+    getListBranches: {
+      url: "https://api.github.com/repos/:owner/:repoId/branches",
+      method: "GET"
+    },
     getProjectInfo: {
       url: "https://api.github.com/repos/:userOrOrgan/:projectId",
       method: "GET",

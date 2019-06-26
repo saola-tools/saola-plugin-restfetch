@@ -143,12 +143,7 @@ function registerMethod(ctx, target, methodName, methodDescriptor) {
   return target;
 }
 
-function buildFetchArgs(descriptor, methodArgs, methodOpts) {
-  let error = null;
-  let url = descriptor.url;
-  if (!lodash.isString(url) || url.length == 0) {
-    return { error: new Error('invalid-http-url') }
-  }
+function buildFetchArgs(descriptor = {}, methodArgs, methodOpts) {
   let args = {
     method: descriptor.method,
     headers: {
@@ -158,10 +153,25 @@ function buildFetchArgs(descriptor, methodArgs, methodOpts) {
   if (!lodash.isString(args.method)) {
     return { error: new Error('invalid-http-method') }
   }
-  const toPath = pathToRegexp.compile(url);
-  url = toPath(methodArgs[0].params);
 
-  return { url, args, error };
+  let url = descriptor.url;
+  if (!lodash.isString(url) || url.length == 0) {
+    return { error: new Error('invalid-http-url') }
+  }
+  if (!descriptor.urlRegexp) {
+    descriptor.urlRegexp = pathToRegexp.compile(url);
+  }
+  const urlRegexp = descriptor.urlRegexp;
+  const urlParams = lodash.get(methodArgs, "0.params");
+  try {
+    url = urlRegexp(urlParams);
+  } catch (error) {
+    return { error: error }
+  }
+
+  let timeout = descriptor.timeout;
+
+  return { url, args, timeout };
 }
 
 function parseMethodArgs(args) {

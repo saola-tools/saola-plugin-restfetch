@@ -13,10 +13,10 @@ var resolver = main.runner.getSandboxService('app-restfetch/resolver');
 
 var githubApi = resolver.lookupService("restfetch-example/github");
 
-githubApi.getProjectInfo({
+githubApi.getListBranches({
   params: {
-    userOrOrgan: 'apporo',
-    projectId: 'app-restfront'
+    owner: 'apporo',
+    repoId: 'app-datastore'
   }
 }).then(function(output) {
   console.log(JSON.stringify(output, null, 2));
