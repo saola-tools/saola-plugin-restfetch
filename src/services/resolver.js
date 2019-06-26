@@ -217,27 +217,29 @@ function getQueryString(params) {
 }
 
 const DEFAULT_TRANSFORMERS = {
-  transformArguments: function () {
+  arguments: function () {
     if (arguments.length == 0) {
       return {};
     }
     return arguments[0];
   },
-  transformResponse: function (res) {
+  response: function (res) {
     if (this.format === 'text') {
       return res.text();
     }
     return res.json();
   },
-  transformException: function (error) {
+  exception: function (error) {
     return error;
   }
 }
 
-function Transformer(methodDescriptor) {
+function Transformer(descriptor) {
   const self = this;
-  lodash.forOwn(DEFAULT_TRANSFORMERS, function(func, name) {
-    self[name] = lodash.isFunction(methodDescriptor[name]) ? methodDescriptor[name] : func;
+  lodash.forOwn(DEFAULT_TRANSFORMERS, function(transformDefault, name) {
+    const transform = lodash.get(descriptor, [name, "transform"]);
+    const transformName = "transform" + lodash.capitalize(name);
+    self[transformName] = lodash.isFunction(transform) ? transform : transformDefault;
   })
 }
 
@@ -305,20 +307,6 @@ const SCHEMA_METHOD_ARGS = {
 
 function validateMethodArgs(object) {
   return validator.validate(object, SCHEMA_METHOD_ARGS);
-}
-
-function parseMethodArgs(args) {
-  let opts = {};
-  if (args.length > 0) {
-    opts = args[args.length - 1];
-    if (opts && lodash.isObject(opts) && opts.requestId && opts.opflowSeal) {
-      args = Array.prototype.slice.call(args, 0, args.length - 1);
-    } else {
-      args = Array.prototype.slice.call(args);
-      opts = {};
-    }
-  }
-  return { methodArgs: args, options: opts }
 }
 
 function getTicket(ctx) {

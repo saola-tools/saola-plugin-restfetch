@@ -2,37 +2,45 @@ module.exports = {
   enabled: true,
   methods: {
     getListBranches: {
-      url: "https://api.github.com/repos/:owner/:repoId/branches",
       method: "GET",
-      transformArguments: function(owner, projectId) {
-        var p = {};
-        if (owner != null) {
-          p.owner = owner;
+      url: "https://api.github.com/repos/:owner/:repoId/branches",
+      arguments: {
+        transform: function(owner, projectId) {
+          var p = {};
+          if (owner != null) {
+            p.owner = owner;
+          }
+          if (projectId != null) {
+            p.repoId = projectId;
+          }
+          return { params: p }
         }
-        if (projectId != null) {
-          p.repoId = projectId;
-        }
-        return { params: p }
       }
     },
     getProjectInfo: {
-      url: "https://api.github.com/repos/:userOrOrgan/:projectId",
       method: "GET",
-      default: {
-        params: {
-          userOrOrgan: 'apporo',
-          projectId: 'app-restfront'
+      url: "https://api.github.com/repos/:userOrOrgan/:projectId",
+      arguments: {
+        default: {
+          params: {
+            userOrOrgan: 'apporo',
+            projectId: 'app-restfront'
+          },
+          query: {}
         },
-        query: {}
+        transform: function(data) {
+          return data;
+        }
       },
-      transformArguments: function(data) {
-        return data;
+      response: {
+        transform: function(res) {
+          return res.json();
+        }
       },
-      transformResponse: function(result) {
-        return result;
-      },
-      transformException: function(error) {
-        return error;
+      exception: {
+        transform: function(error) {
+          return error;
+        }
       }
     }
   }
