@@ -119,22 +119,34 @@ function registerMethod(ctx, target, methodName, methodDescriptor) {
             tags: [ blockRef, 'dispatch-message' ],
             text: '[${ticketId}] Routine[${methodName}] arguments: ${methodArgs}, options: ${options}'
           }));
-          const FA = buildFetchArgs(methodDescriptor, methodArgs, options);
+          const FA = buildFetchArgs(ctx, methodDescriptor, methodArgs, options);
           if (FA.error) {
             return Bluebird.reject(FA.error);
           }
-          // TODO: validate descriptor here
-          const p = fetch(FA.url, FA.args);
-          return p
-          .then(function (res) {
+
+          let p = fetch(FA.url, FA.args);
+
+          if (FA.timeout != null && FA.timeout > 0) {
+            p = p.timeout(FA.timeout);
+          }
+
+          // response processing
+          p = p.then(function (res) {
+            // TODO: validate descriptor here
             return Bluebird.resolve(res.json());
-          })
-          .catch(function (err) {
+          });
+
+          // error processing
+          p = p.catch(function (err) {
             return Bluebird.reject(err);
-          })
-          .finally(function() {
+          });
+
+          // finally
+          p = p.finally(function() {
             releaseTicket(ctx, ticketId);
           });
+
+          return p;
         });
       }
     },
@@ -143,7 +155,7 @@ function registerMethod(ctx, target, methodName, methodDescriptor) {
   return target;
 }
 
-function buildFetchArgs(descriptor = {}, methodArgs, methodOpts) {
+function buildFetchArgs(ctx = {}, descriptor = {}, methodArgs, methodOpts) {
   let args = {
     method: descriptor.method,
     headers: {
@@ -168,10 +180,24 @@ function buildFetchArgs(descriptor = {}, methodArgs, methodOpts) {
   } catch (error) {
     return { error: error }
   }
+  if (lodash.isObject(descriptor.query) && !lodash.isEmpty(descriptor.query)) {
+    url = url + '?' + getQueryString(descriptor.query);
+  }
 
   let timeout = descriptor.timeout;
 
   return { url, args, timeout };
+}
+
+function getQueryString(params) {
+  return lodash.keys(params).map(function(k) {
+    if (lodash.isArray(params[k])) {
+      return params[k].map(function(val) {
+        return `${encodeURIComponent(k)}[]=${encodeURIComponent(val)}`
+      }).join('&')
+    }
+    return `${encodeURIComponent(k)}=${encodeURIComponent(params[k])}`
+  }).join('&')
 }
 
 function parseMethodArgs(args) {
