@@ -111,7 +111,7 @@ function registerMethod(ctx, target, methodName, methodDescriptor, methodContext
   Object.defineProperty(target, methodName, {
     get: function() {
       return function() {
-        const methodArgs = F.transformInput.apply(F, arguments);
+        const methodArgs = F.transformArguments(...arguments);
         // validate the methodArgs
         const vResult = validateMethodArgs(methodArgs);
         if (!vResult.ok) {
@@ -142,13 +142,13 @@ function registerMethod(ctx, target, methodName, methodDescriptor, methodContext
           // response processing
           p = p.then(function (res) {
             // TODO: validate descriptor here
-            let output = F.transformOutput(res);
+            let output = F.transformResponse(res);
             return Bluebird.resolve(output);
           });
 
           // error processing
           p = p.catch(function (err) {
-            return Bluebird.reject(F.transformError(err));
+            return Bluebird.reject(F.transformException(err));
           });
 
           // finally
@@ -217,19 +217,19 @@ function getQueryString(params) {
 }
 
 const DEFAULT_TRANSFORMERS = {
-  transformInput: function () {
+  transformArguments: function () {
     if (arguments.length == 0) {
       return {};
     }
     return arguments[0];
   },
-  transformOutput: function (res) {
+  transformResponse: function (res) {
     if (this.format === 'text') {
       return res.text();
     }
     return res.json();
   },
-  transformError: function (error) {
+  transformException: function (error) {
     return error;
   }
 }
