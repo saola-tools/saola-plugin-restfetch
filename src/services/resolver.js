@@ -78,15 +78,16 @@ function createService(ctx, storage, serviceName, serviceDescriptor) {
     text: ' - Initialize the service[${name}], enabled: ${enabled}'
   }));
   if (serviceDescriptor.enabled !== false) {
-    let methods = serviceDescriptor.methods || {};
+    const methodContext = lodash.get(serviceDescriptor, "default", {});
+    const methods = serviceDescriptor.methods || {};
     lodash.forOwn(methods, function(methodDescriptor, methodName) {
-      registerMethod(ctx, storage[serviceName], methodName, methodDescriptor);
+      registerMethod(ctx, storage[serviceName], methodName, methodDescriptor, methodContext);
     });
   }
   return storage;
 }
 
-function registerMethod(ctx, target, methodName, methodDescriptor) {
+function registerMethod(ctx, target, methodName, methodDescriptor, methodContext) {
   const { L, T, blockRef } = ctx;
 
   target = target || {};
@@ -119,7 +120,7 @@ function registerMethod(ctx, target, methodName, methodDescriptor) {
             tags: [ blockRef, 'dispatch-message' ],
             text: '[${ticketId}] Routine[${methodName}] arguments: ${methodArgs}, options: ${options}'
           }));
-          const FA = buildFetchArgs(ctx, methodDescriptor, methodArgs, options);
+          const FA = buildFetchArgs(methodContext, methodDescriptor, methodArgs, options);
           if (FA.error) {
             return Bluebird.reject(FA.error);
           }
@@ -155,7 +156,7 @@ function registerMethod(ctx, target, methodName, methodDescriptor) {
   return target;
 }
 
-function buildFetchArgs(ctx = {}, descriptor = {}, methodArgs, methodOpts) {
+function buildFetchArgs(context = {}, descriptor = {}, methodArgs, methodOpts) {
   let args = {
     method: descriptor.method,
     headers: {
@@ -174,14 +175,21 @@ function buildFetchArgs(ctx = {}, descriptor = {}, methodArgs, methodOpts) {
     descriptor.urlRegexp = pathToRegexp.compile(url);
   }
   const urlRegexp = descriptor.urlRegexp;
-  const urlParams = lodash.get(methodArgs, "0.params");
+  const urlParams = lodash.merge({},
+      lodash.get(context, "params"),
+      lodash.get(descriptor, ["default", "params"]),
+      lodash.get(methodArgs, "0.params"));
   try {
     url = urlRegexp(urlParams);
   } catch (error) {
     return { error: error }
   }
-  if (lodash.isObject(descriptor.query) && !lodash.isEmpty(descriptor.query)) {
-    url = url + '?' + getQueryString(descriptor.query);
+  const urlQuery = lodash.merge({},
+    lodash.get(context, "query"),
+    lodash.get(descriptor, ["default", "query"]),
+    lodash.get(methodArgs, "0.query"));
+  if (lodash.isObject(urlQuery) && !lodash.isEmpty(urlQuery)) {
+    url = url + '?' + getQueryString(urlQuery);
   }
 
   let timeout = descriptor.timeout;
