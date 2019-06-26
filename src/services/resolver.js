@@ -157,6 +157,7 @@ function registerMethod(ctx, target, methodName, methodDescriptor, methodContext
 }
 
 function buildFetchArgs(context = {}, descriptor = {}, methodArgs, methodOpts) {
+  methodArgs = methodArgs[0] || {};
   let args = {
     method: descriptor.method,
     headers: {
@@ -165,6 +166,9 @@ function buildFetchArgs(context = {}, descriptor = {}, methodArgs, methodOpts) {
   }
   if (!lodash.isString(args.method)) {
     return { error: new Error('invalid-http-method') }
+  }
+  if (methodArgs.body != null) {
+    args.body = methodArgs.body;
   }
 
   let url = descriptor.url;
@@ -178,7 +182,7 @@ function buildFetchArgs(context = {}, descriptor = {}, methodArgs, methodOpts) {
   const urlParams = lodash.merge({},
       lodash.get(context, "params"),
       lodash.get(descriptor, ["default", "params"]),
-      lodash.get(methodArgs, "0.params"));
+      lodash.get(methodArgs, "params"));
   try {
     url = urlRegexp(urlParams);
   } catch (error) {
@@ -187,7 +191,7 @@ function buildFetchArgs(context = {}, descriptor = {}, methodArgs, methodOpts) {
   const urlQuery = lodash.merge({},
     lodash.get(context, "query"),
     lodash.get(descriptor, ["default", "query"]),
-    lodash.get(methodArgs, "0.query"));
+    lodash.get(methodArgs, "query"));
   if (lodash.isObject(urlQuery) && !lodash.isEmpty(urlQuery)) {
     url = url + '?' + getQueryString(urlQuery);
   }

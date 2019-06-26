@@ -52,6 +52,15 @@ describe('resolver', function() {
     var Resolver = dtk.acquire('resolver');
     var buildFetchArgs = Resolver.__get__('buildFetchArgs');
 
+    var context = {
+      headers: {
+        "Content-Type": "application/json"
+      },
+      query: {
+        accessToken: 'abc.xyz:hello-world'
+      }
+    }
+
     var descriptor = {
       url: "https://api.github.com/repos/:owner/:repoId",
       method: "GET",
@@ -78,13 +87,36 @@ describe('resolver', function() {
     }]
 
     it('return the fetch parameters which built from the arguments of a method invocation', function() {
-      var fa = buildFetchArgs({}, descriptor, methodArgs);
+      var fa = buildFetchArgs(context, descriptor, methodArgs);
       assert.isUndefined(fa.error);
       assert.equal(fa.url, 'https://api.github.com/repos/devebot/valvekit?accessToken=0987654321&type[]=api&type[]=sms');
       assert.deepEqual(fa.args, {
         method: 'GET',
         headers: {
           "Content-Type": "application/json"
+        }
+      });
+      assert.isUndefined(fa.timeout);
+    });
+
+    it('return the fetch parameters which built from the method arguments and default params of descriptor', function() {
+      var methodArgs = [{
+        body: {
+          orderId: 'ed441963-52b3-4981-ab83-6ea9eceb2213',
+          name: 'PowerFan-W200'
+        }
+      }]
+      var fa = buildFetchArgs(context, descriptor, methodArgs);
+      assert.isUndefined(fa.error);
+      assert.equal(fa.url, 'https://api.github.com/repos/apporo/app-restfetch?accessToken=1234567890');
+      assert.deepEqual(fa.args, {
+        method: 'GET',
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: {
+          orderId: 'ed441963-52b3-4981-ab83-6ea9eceb2213',
+          name: 'PowerFan-W200'
         }
       });
       assert.isUndefined(fa.timeout);
