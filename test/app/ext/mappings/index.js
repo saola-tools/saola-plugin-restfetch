@@ -8,7 +8,7 @@ const path = require('path');
 
 const settings = {};
 
-['github'].forEach(function(key) {
+lodash.forEach(['github'], function(key) {
   const serviceName = targetBundle + '/' + key;
   settings[serviceName] = require(path.join(__dirname, 'targets', key + '.js'));
 })

@@ -21,7 +21,11 @@ function Service(params = {}) {
   let pluginCfg = lodash.get(params, ['sandboxConfig'], {});
   let mappings = pluginCfg.mappings || {};
   if (lodash.isString(pluginCfg.mappingStore)) {
-    mappings = lodash.assign(mappings, require(pluginCfg.mappingStore))
+    let mappingSource = require(pluginCfg.mappingStore);
+    if (lodash.isFunction(mappingSource)) {
+      mappingSource = mappingSource(pluginCfg.mappingBundle);
+    }
+    mappings = lodash.assign(mappings, mappingSource);
   }
   let services = {};
 
@@ -51,8 +55,6 @@ function Service(params = {}) {
 
   init(ctx, services, mappings, pluginCfg.enabled !== false);
 };
-
-Service.referenceList = [];
 
 module.exports = Service;
 
