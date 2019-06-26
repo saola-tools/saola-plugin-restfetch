@@ -75,7 +75,7 @@ describe('resolver', function() {
       }
     }
 
-    var methodArgs = [{
+    var methodArgs = {
       params: {
         owner: 'devebot',
         repoId: 'valvekit'
@@ -84,7 +84,7 @@ describe('resolver', function() {
         accessToken: '0987654321',
         type: ['api', 'sms']
       }
-    }]
+    }
 
     it('return the fetch parameters which built from the arguments of a method invocation', function() {
       var fa = buildFetchArgs(context, descriptor, methodArgs);
@@ -100,12 +100,12 @@ describe('resolver', function() {
     });
 
     it('return the fetch parameters which built from the method arguments and default params of descriptor', function() {
-      var methodArgs = [{
+      var methodArgs = {
         body: {
           orderId: 'ed441963-52b3-4981-ab83-6ea9eceb2213',
           name: 'PowerFan-W200'
         }
-      }]
+      }
       var fa = buildFetchArgs(context, descriptor, methodArgs);
       assert.isUndefined(fa.error);
       assert.equal(fa.url, 'https://api.github.com/repos/apporo/app-restfetch?accessToken=1234567890');

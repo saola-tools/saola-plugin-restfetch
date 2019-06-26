@@ -99,28 +99,32 @@ function registerMethod(ctx, target, methodName, methodDescriptor, methodContext
     enabled: methodDescriptor.enabled !== false
   }).toMessage({
     tags: [ blockRef, 'register-method' ],
-    text: ' - Initialize method[${name}] ~ routine[${methodName}], enabled: ${enabled}'
+    text: '   | Initialize method[${methodName}], enabled: ${enabled}'
   }));
 
   if (methodDescriptor.enabled === false) return target;
 
+  const F = lodash.mapValues(DEFAULT_TRANSFORMERS, function(f, name) {
+    return lodash.isFunction(methodDescriptor[name]) ? methodDescriptor[name] : f;
+  })
+
   Object.defineProperty(target, methodName, {
     get: function() {
       return function() {
-        const { methodArgs, options } = parseMethodArgs(arguments);
+        const methodArgs = F.transformInput(arguments, ctx);
+        // TODO: validate methodArgs here
         return getTicket(ctx).then(function(ticketId) {
-          const requestId = options.requestId || T.getLogID();
+          const requestId = methodArgs.requestId || T.getLogID();
           const requestTrail = routineTr.branch({ key:'requestId', value:requestId });
           L.has('info') && L.log('info', requestTrail.add({
             ticketId: ticketId,
             methodName: methodName,
-            methodArgs: methodArgs,
-            options: options
+            methodArgs: methodArgs
           }).toMessage({
             tags: [ blockRef, 'dispatch-message' ],
-            text: '[${ticketId}] Routine[${methodName}] arguments: ${methodArgs}, options: ${options}'
+            text: '[${ticketId}] Routine[${methodName}] arguments: ${methodArgs}'
           }));
-          const FA = buildFetchArgs(methodContext, methodDescriptor, methodArgs, options);
+          const FA = buildFetchArgs(methodContext, methodDescriptor, methodArgs);
           if (FA.error) {
             return Bluebird.reject(FA.error);
           }
@@ -134,12 +138,13 @@ function registerMethod(ctx, target, methodName, methodDescriptor, methodContext
           // response processing
           p = p.then(function (res) {
             // TODO: validate descriptor here
-            return Bluebird.resolve(res.json());
+            let output = F.transformOutput(res);
+            return Bluebird.resolve(output);
           });
 
           // error processing
           p = p.catch(function (err) {
-            return Bluebird.reject(err);
+            return Bluebird.reject(F.transformError(err));
           });
 
           // finally
@@ -156,13 +161,16 @@ function registerMethod(ctx, target, methodName, methodDescriptor, methodContext
   return target;
 }
 
-function buildFetchArgs(context = {}, descriptor = {}, methodArgs, methodOpts) {
-  methodArgs = methodArgs[0] || {};
-  let args = {
+const FETCH_ARGS_FIELDS = ["headers", "params", "query"];
+
+function buildFetchArgs(context = {}, descriptor = {}, methodArgs = {}) {
+  const opts = lodash.merge({},
+    lodash.pick(context, FETCH_ARGS_FIELDS),
+    lodash.pick(lodash.get(descriptor, "default", {}), FETCH_ARGS_FIELDS),
+    lodash.pick(methodArgs, FETCH_ARGS_FIELDS));
+  const args = {
     method: descriptor.method,
-    headers: {
-      'Content-Type': 'application/json'
-    }
+    headers: opts.headers
   }
   if (!lodash.isString(args.method)) {
     return { error: new Error('invalid-http-method') }
@@ -179,21 +187,13 @@ function buildFetchArgs(context = {}, descriptor = {}, methodArgs, methodOpts) {
     descriptor.urlRegexp = pathToRegexp.compile(url);
   }
   const urlRegexp = descriptor.urlRegexp;
-  const urlParams = lodash.merge({},
-      lodash.get(context, "params"),
-      lodash.get(descriptor, ["default", "params"]),
-      lodash.get(methodArgs, "params"));
   try {
-    url = urlRegexp(urlParams);
+    url = urlRegexp(opts.params);
   } catch (error) {
     return { error: error }
   }
-  const urlQuery = lodash.merge({},
-    lodash.get(context, "query"),
-    lodash.get(descriptor, ["default", "query"]),
-    lodash.get(methodArgs, "query"));
-  if (lodash.isObject(urlQuery) && !lodash.isEmpty(urlQuery)) {
-    url = url + '?' + getQueryString(urlQuery);
+  if (lodash.isObject(opts.query) && !lodash.isEmpty(opts.query)) {
+    url = url + '?' + getQueryString(opts.query);
   }
 
   let timeout = descriptor.timeout;
@@ -210,6 +210,23 @@ function getQueryString(params) {
     }
     return `${encodeURIComponent(k)}=${encodeURIComponent(params[k])}`
   }).join('&')
+}
+
+const DEFAULT_TRANSFORMERS = {
+  transformInput: function (args, ctx) {
+    return args[0];
+  },
+
+  transformOutput: function (res, ctx = {}) {
+    if (ctx.format === 'text') {
+      return res.text();
+    }
+    return res.json();
+  },
+
+  transformError: function (error, ctx) {
+    return error;
+  }
 }
 
 function parseMethodArgs(args) {
