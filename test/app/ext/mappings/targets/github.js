@@ -3,7 +3,15 @@ module.exports = {
   methods: {
     getListBranches: {
       url: "https://api.github.com/repos/:owner/:repoId/branches",
-      method: "GET"
+      method: "GET",
+      transformInput: function(owner, projectId) {
+        return {
+          params: {
+            owner: owner,
+            repoId: projectId
+          }
+        }
+      }
     },
     getProjectInfo: {
       url: "https://api.github.com/repos/:userOrOrgan/:projectId",
@@ -15,10 +23,10 @@ module.exports = {
         },
         query: {}
       },
-      transformData: function(data) {
+      transformInput: function(data) {
         return data;
       },
-      transformResult: function(result) {
+      transformOutput: function(result) {
         return result;
       },
       transformError: function(error) {

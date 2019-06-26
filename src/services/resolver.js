@@ -104,14 +104,12 @@ function registerMethod(ctx, target, methodName, methodDescriptor, methodContext
 
   if (methodDescriptor.enabled === false) return target;
 
-  const F = lodash.mapValues(DEFAULT_TRANSFORMERS, function(f, name) {
-    return lodash.isFunction(methodDescriptor[name]) ? methodDescriptor[name] : f;
-  })
+  const F = new Transformer(methodDescriptor);
 
   Object.defineProperty(target, methodName, {
     get: function() {
       return function() {
-        const methodArgs = F.transformInput(arguments, ctx);
+        const methodArgs = F.transformInput.apply(F, arguments);
         // TODO: validate methodArgs here
         return getTicket(ctx).then(function(ticketId) {
           const requestId = methodArgs.requestId || T.getLogID();
@@ -213,20 +211,28 @@ function getQueryString(params) {
 }
 
 const DEFAULT_TRANSFORMERS = {
-  transformInput: function (args, ctx) {
-    return args[0];
+  transformInput: function () {
+    if (arguments.length == 0) {
+      return {};
+    }
+    return arguments[0];
   },
-
-  transformOutput: function (res, ctx = {}) {
-    if (ctx.format === 'text') {
+  transformOutput: function (res) {
+    if (this.format === 'text') {
       return res.text();
     }
     return res.json();
   },
-
-  transformError: function (error, ctx) {
+  transformError: function (error) {
     return error;
   }
+}
+
+function Transformer(methodDescriptor) {
+  const self = this;
+  lodash.forOwn(DEFAULT_TRANSFORMERS, function(func, name) {
+    self[name] = lodash.isFunction(methodDescriptor[name]) ? methodDescriptor[name] : func;
+  })
 }
 
 function parseMethodArgs(args) {
