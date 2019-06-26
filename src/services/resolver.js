@@ -95,9 +95,8 @@ function registerMethod(ctx, target, methodName, methodDescriptor, methodContext
   target = target || {};
   methodDescriptor = methodDescriptor || {};
 
-  const routineTr = T.branch({ key: 'methodName', value: methodName });
-
-  L.has('debug') && L.log('debug', routineTr.add({
+  L.has('debug') && L.log('debug', T.add({
+    methodName: methodName,
     enabled: methodDescriptor.enabled !== false
   }).toMessage({
     tags: [ blockRef, 'register-method' ],
@@ -119,11 +118,8 @@ function registerMethod(ctx, target, methodName, methodDescriptor, methodContext
         }
         return getTicket(ctx).then(function(ticketId) {
           const requestId = methodArgs.requestId || T.getLogID();
-          const requestTrail = routineTr.branch({ key:'requestId', value:requestId });
-          L.has('info') && L.log('info', requestTrail.add({
-            ticketId: ticketId,
-            methodName: methodName,
-            methodArgs: methodArgs
+          L.has('info') && L.log('info', T.add({
+            requestId, ticketId, methodName, methodArgs
           }).toMessage({
             tags: [ blockRef, 'dispatch-message' ],
             text: '[${ticketId}] Routine[${methodName}] arguments: ${methodArgs}'
@@ -141,8 +137,14 @@ function registerMethod(ctx, target, methodName, methodDescriptor, methodContext
 
           // response processing
           p = p.then(function (res) {
+            L.has('info') && L.log('info', T.add({
+              requestId, ticketId, methodName
+            }).toMessage({
+              tags: [ blockRef, 'dispatch-message' ],
+              text: '[${requestId}/${ticketId}] Method[${methodName}] has done successfully'
+            }));
+            const output = F.transformResponse(res);
             // TODO: validate descriptor here
-            let output = F.transformResponse(res);
             return Bluebird.resolve(output);
           });
 
@@ -246,6 +248,9 @@ function Transformer(descriptor) {
 const SCHEMA_METHOD_ARGS = {
   "type": "object",
   "properties": {
+    "requestId": {
+      "type": "string"
+    },
     "params": {
       "type": "object",
       "patternProperties": {

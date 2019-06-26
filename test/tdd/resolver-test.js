@@ -4,7 +4,6 @@ var devebot = require('devebot');
 var lodash = devebot.require('lodash');
 var assert = require('chai').assert;
 var sinon = require('sinon');
-var valvekit = require('valvekit');
 var dtk = require('../index');
 
 describe('resolver', function() {
