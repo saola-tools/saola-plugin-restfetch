@@ -42,6 +42,55 @@ describe('resolver', function() {
     });
   });
 
+  describe('buildFetchArgs()', function() {
+    var loggingFactory = dtk.createLoggingFactoryMock({ captureMethodCall: false });
+    var ctx = {
+      L: loggingFactory.getLogger(),
+      T: loggingFactory.getTracer(),
+      blockRef: 'app-restfetch',
+    }
+    var Resolver = dtk.acquire('resolver');
+    var buildFetchArgs = Resolver.__get__('buildFetchArgs');
+
+    var descriptor = {
+      url: "https://api.github.com/repos/:owner/:repoId",
+      method: "GET",
+      default: {
+        params: {
+          owner: 'apporo',
+          repoId: 'app-restfetch'
+        },
+        query: {
+          accessToken: '1234567890'
+        }
+      }
+    }
+
+    var methodArgs = [{
+      params: {
+        owner: 'devebot',
+        repoId: 'valvekit'
+      },
+      query: {
+        accessToken: '0987654321',
+        type: ['api', 'sms']
+      }
+    }]
+
+    it('return the fetch parameters which built from the arguments of a method invocation', function() {
+      var fa = buildFetchArgs({}, descriptor, methodArgs);
+      assert.isUndefined(fa.error);
+      assert.equal(fa.url, 'https://api.github.com/repos/devebot/valvekit?accessToken=0987654321&type[]=api&type[]=sms');
+      assert.deepEqual(fa.args, {
+        method: 'GET',
+        headers: {
+          "Content-Type": "application/json"
+        }
+      });
+      assert.isUndefined(fa.timeout);
+    });
+  })
+
   describe('getTicket()/releaseTicket()', function() {
     var loggingFactory = dtk.createLoggingFactoryMock({ captureMethodCall: false });
     var ctx = {
