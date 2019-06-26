@@ -4,6 +4,8 @@ const Devebot = require('devebot');
 const Bluebird = Devebot.require('bluebird');
 const chores = Devebot.require('chores');
 const lodash = Devebot.require('lodash');
+const schemato = Devebot.require('schemato');
+const validator = new schemato.Validator({ schemaVersion: 4 });
 const valvekit = require('valvekit');
 const pathToRegexp = require('path-to-regexp');
 const fetch = require('node-fetch');
@@ -110,7 +112,11 @@ function registerMethod(ctx, target, methodName, methodDescriptor, methodContext
     get: function() {
       return function() {
         const methodArgs = F.transformInput.apply(F, arguments);
-        // TODO: validate methodArgs here
+        // validate the methodArgs
+        const vResult = validateMethodArgs(methodArgs);
+        if (!vResult.ok) {
+          return Bluebird.reject(new Error(JSON.stringify(vResult.errors)));
+        }
         return getTicket(ctx).then(function(ticketId) {
           const requestId = methodArgs.requestId || T.getLogID();
           const requestTrail = routineTr.branch({ key:'requestId', value:requestId });
@@ -233,6 +239,72 @@ function Transformer(methodDescriptor) {
   lodash.forOwn(DEFAULT_TRANSFORMERS, function(func, name) {
     self[name] = lodash.isFunction(methodDescriptor[name]) ? methodDescriptor[name] : func;
   })
+}
+
+const SCHEMA_METHOD_ARGS = {
+  "type": "object",
+  "properties": {
+    "params": {
+      "type": "object",
+      "patternProperties": {
+        "^[a-zA-Z][a-zA-Z0-9_-]*$": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "boolean"
+            }
+          ]
+        }
+      }
+    },
+    "query": {
+      "type": "object"
+    },
+    "headers": {
+      "type": "object",
+      "patternProperties": {
+        "^[a-zA-Z][a-zA-Z0-9_-]*$": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "boolean"
+            }
+          ]
+        }
+      }
+    },
+    "body": {
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "object"
+        }
+      ]
+    }
+  },
+  "additionalProperties": false
+}
+
+function validateMethodArgs(object) {
+  return validator.validate(object, SCHEMA_METHOD_ARGS);
 }
 
 function parseMethodArgs(args) {

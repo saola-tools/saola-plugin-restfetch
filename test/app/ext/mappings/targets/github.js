@@ -5,12 +5,14 @@ module.exports = {
       url: "https://api.github.com/repos/:owner/:repoId/branches",
       method: "GET",
       transformInput: function(owner, projectId) {
-        return {
-          params: {
-            owner: owner,
-            repoId: projectId
-          }
+        var p = {};
+        if (owner != null) {
+          p.owner = owner;
         }
+        if (projectId != null) {
+          p.repoId = projectId;
+        }
+        return { params: p }
       }
     },
     getProjectInfo: {
