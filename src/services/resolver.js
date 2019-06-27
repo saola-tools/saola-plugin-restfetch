@@ -118,18 +118,25 @@ function registerMethod(ctx, target, methodName, methodDescriptor, methodContext
           L.has('info') && L.log('info', T.add({
             requestId, ticketId, methodName, methodArgs
           }).toMessage({
-            tags: [ blockRef, 'dispatch-message' ],
-            text: '[${ticketId}] Routine[${methodName}] arguments: ${methodArgs}'
+            tags: [ blockRef, 'method-rest' ],
+            text: '[${requestId}] Method[${methodName}] arguments: ${methodArgs}'
           }));
+
           const FA = buildFetchArgs(methodContext, methodDescriptor, methodArgs);
           if (FA.error) {
+            L.has('error') && L.log('error', T.add({
+              requestId, ticketId, methodName
+            }).toMessage({
+              tags: [ blockRef, 'method-rest' ],
+              text: '[${requestId}] Method[${methodName}] - buildFetchArgs() failed'
+            }));
             return Bluebird.reject(FA.error);
           } else {
             L.has('debug') && L.log('debug', T.add({
               requestId, ticketId, methodName, url: FA.url
             }).toMessage({
-              tags: [ blockRef, 'dispatch-message' ],
-              text: '[${ticketId}] Method[${methodName}] is bound to URL[${url}]'
+              tags: [ blockRef, 'method-rest' ],
+              text: '[${requestId}] Method[${methodName}] is bound to URL[${url}]'
             }));
           }
 
@@ -144,8 +151,8 @@ function registerMethod(ctx, target, methodName, methodDescriptor, methodContext
             L.has('info') && L.log('info', T.add({
               requestId, ticketId, methodName
             }).toMessage({
-              tags: [ blockRef, 'dispatch-message' ],
-              text: '[${requestId}/${ticketId}] Method[${methodName}] has done successfully'
+              tags: [ blockRef, 'method-rest' ],
+              text: '[${requestId}] Method[${methodName}] has been done successfully'
             }));
             const output = F.transformResponse(res);
             // TODO: validate descriptor here
@@ -154,6 +161,12 @@ function registerMethod(ctx, target, methodName, methodDescriptor, methodContext
 
           // error processing
           p = p.catch(function (err) {
+            L.has('warn') && L.log('warn', T.add({
+              requestId, ticketId, methodName
+            }).toMessage({
+              tags: [ blockRef, 'method-rest' ],
+              text: '[${requestId}] Method[${methodName}] has failed'
+            }));
             return Bluebird.reject(F.transformException(err));
           });
 

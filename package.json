@@ -39,8 +39,8 @@
   "dependencies": {
     "devebot": "^0.3.0",
     "node-fetch": "2.6.0",
-    "path-to-regexp": "^3.0.0",
-    "valvekit": "^0.2.0"
+    "path-to-regexp": "3.0.0",
+    "valvekit": "0.2.0"
   },
   "devDependencies": {
     "babel-cli": "^6.26.0",
