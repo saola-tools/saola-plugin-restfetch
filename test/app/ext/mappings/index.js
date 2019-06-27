@@ -1,16 +1,15 @@
 'use strict';
 
-const targetBundle = "restfetch-example";
-
 const devebot = require('devebot');
+const chores = devebot.require('chores');
 const lodash = devebot.require('lodash');
 const path = require('path');
 
-const settings = {};
-
-lodash.forEach(['github'], function(key) {
-  const serviceName = targetBundle + '/' + key;
-  settings[serviceName] = require(path.join(__dirname, 'targets', key + '.js'));
-})
-
-module.exports = settings;
+module.exports = function(targetBundle) {
+  const mappings = {};
+  lodash.forEach(['github-api'], function(key) {
+    const serviceName = targetBundle + '/' + chores.stringCamelCase(key);
+    mappings[serviceName] = require(path.join(__dirname, 'targets', key + '.js'));
+  });
+  return mappings;
+}

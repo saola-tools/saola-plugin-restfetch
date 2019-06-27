@@ -11,7 +11,7 @@ var main = require('devebot').launchApplication({
 
 var resolver = main.runner.getSandboxService('app-restfetch/resolver');
 
-var githubApi = resolver.lookupService("restfetch-example/github");
+var githubApi = resolver.lookupService("restfetch-example/githubApi");
 
 githubApi.getListBranches('apporo','app-datastore').then(function(output) {
   console.log(JSON.stringify(output, null, 2));

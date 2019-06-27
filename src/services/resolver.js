@@ -13,21 +13,14 @@ const fetch = require('node-fetch');
 fetch.Promise = Bluebird;
 
 function Service(params = {}) {
-  let L = params.loggingFactory.getLogger();
-  let T = params.loggingFactory.getTracer();
-  let packageName = params.packageName || 'app-restfetch';
-  let blockRef = chores.getBlockRef(__filename, packageName);
+  const L = params.loggingFactory.getLogger();
+  const T = params.loggingFactory.getTracer();
+  const packageName = params.packageName || 'app-restfetch';
+  const blockRef = chores.getBlockRef(__filename, packageName);
 
-  let pluginCfg = lodash.get(params, ['sandboxConfig'], {});
-  let mappings = pluginCfg.mappings || {};
-  if (lodash.isString(pluginCfg.mappingStore)) {
-    let mappingSource = require(pluginCfg.mappingStore);
-    if (lodash.isFunction(mappingSource)) {
-      mappingSource = mappingSource(pluginCfg.mappingBundle);
-    }
-    mappings = lodash.assign(mappings, mappingSource);
-  }
-  let services = {};
+  const pluginCfg = lodash.get(params, ['sandboxConfig'], {});
+  const mappings = params.counselor.mappings;
+  const services = {};
 
   let ticketDeliveryDelay = pluginCfg.ticketDeliveryDelay || null;
   if (!(lodash.isInteger(ticketDeliveryDelay) && ticketDeliveryDelay > 0)) {
@@ -55,6 +48,8 @@ function Service(params = {}) {
 
   init(ctx, services, mappings, pluginCfg.enabled !== false);
 };
+
+Service.referenceList = [ 'counselor' ];
 
 module.exports = Service;
 
