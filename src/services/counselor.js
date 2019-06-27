@@ -47,7 +47,10 @@ function loadMappings(mappingSource, mappingBundle) {
       return info.name;
     });
     lodash.forEach(keys, function(key) {
-      const serviceName = mappingBundle + '/' + chores.stringCamelCase(key);
+      let serviceName = chores.stringCamelCase(key);
+      if (lodash.isString(mappingBundle) && mappingBundle.length > 0) {
+        serviceName = mappingBundle + '/' + serviceName;
+      }
       mappings[serviceName] = require(path.join(mappingSource, key + '.js'));
     });
   }

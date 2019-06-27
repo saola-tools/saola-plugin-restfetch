@@ -77,7 +77,7 @@ function createService(ctx, storage, serviceName, serviceDescriptor) {
     text: ' - Initialize the service[${name}], enabled: ${enabled}'
   }));
   if (serviceDescriptor.enabled !== false) {
-    const methodContext = lodash.get(serviceDescriptor, "default", {});
+    const methodContext = lodash.get(serviceDescriptor, ["arguments", "default"], {});
     const methods = serviceDescriptor.methods || {};
     lodash.forOwn(methods, function(methodDescriptor, methodName) {
       registerMethod(ctx, storage[serviceName], methodName, methodDescriptor, methodContext);
@@ -114,7 +114,7 @@ function registerMethod(ctx, target, methodName, methodDescriptor, methodContext
           return Bluebird.reject(new Error(JSON.stringify(vResult.errors)));
         }
         return getTicket(ctx).then(function(ticketId) {
-          const requestId = methodArgs.requestId || T.getLogID();
+          const requestId = methodArgs.requestId = methodArgs.requestId || T.getLogID();
           L.has('info') && L.log('info', T.add({
             requestId, ticketId, methodName, methodArgs
           }).toMessage({
@@ -124,6 +124,13 @@ function registerMethod(ctx, target, methodName, methodDescriptor, methodContext
           const FA = buildFetchArgs(methodContext, methodDescriptor, methodArgs);
           if (FA.error) {
             return Bluebird.reject(FA.error);
+          } else {
+            L.has('debug') && L.log('debug', T.add({
+              requestId, ticketId, methodName, url: FA.url
+            }).toMessage({
+              tags: [ blockRef, 'dispatch-message' ],
+              text: '[${ticketId}] Method[${methodName}] is bound to URL[${url}]'
+            }));
           }
 
           let p = fetch(FA.url, FA.args);
@@ -169,7 +176,7 @@ const FETCH_ARGS_FIELDS = ["headers", "params", "query"];
 function buildFetchArgs(context = {}, descriptor = {}, methodArgs = {}) {
   const opts = lodash.merge({},
     lodash.pick(context, FETCH_ARGS_FIELDS),
-    lodash.pick(lodash.get(descriptor, "default", {}), FETCH_ARGS_FIELDS),
+    lodash.pick(lodash.get(descriptor, ["arguments", "default"], {}), FETCH_ARGS_FIELDS),
     lodash.pick(methodArgs, FETCH_ARGS_FIELDS));
   const args = {
     method: descriptor.method,
