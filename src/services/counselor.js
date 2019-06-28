@@ -5,6 +5,7 @@ const chores = Devebot.require('chores');
 const lodash = Devebot.require('lodash');
 const fs = require('fs');
 const path = require('path');
+const traverse = require('traverse');
 
 function Counselor(params = {}) {
   const pluginCfg = lodash.get(params, ['sandboxConfig'], {});
@@ -82,7 +83,17 @@ function filenameFilter(dir, exts, fileinfos) {
   return fileinfos;
 }
 
-function sanitizeHttpHeaders() {
+function sanitizeHttpHeaders(mappings) {
+  mappings = traverse(mappings).map(function (x) {
+    if (this.key == 'headers') {
+      var headers = this.node;
+      headers = lodash.mapKeys(headers, function(v, k) {
+        return unifyHttpHeaderName(k);
+      });
+      this.update(headers, true); // default: stopHere=false
+    }
+  });
+  return mappings;
 }
 
 function unifyHttpHeaderName(name) {
