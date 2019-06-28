@@ -152,6 +152,14 @@ describe('resolver', function() {
       assert.equal(getQueryString({ id: "A&762=tu", from: 10 }), "id=A%26762%3Dtu&from=10");
       //console.log("Result[%s]", getQueryString({ id: "A&762=tu", from: 10 }));
     })
+
+    it('Create a query string properly', function() {
+      assert.equal(getQueryString({id: "Ae762Btu", color: ["red", "green", "blue"] }),"id=Ae762Btu&color[]=red&color[]=green&color[]=blue");
+      assert.equal(getQueryString([]), '');
+      assert.equal(getQueryString({id:"Abcdk79", mobile: ["Nokia8", "SamSung=S9+", "LG66", "iphone8+"]}),"id=Abcdk79&mobile[]=Nokia8&mobile[]=SamSung%3DS9%2B&mobile[]=LG66&mobile[]=iphone8%2B");
+      assert.equal(getQueryString({numberchar:["2<>3#$#","abcd","THX1138","< >"]}),"numberchar[]=2%3C%3E3%23%24%23&numberchar[]=abcd&numberchar[]=THX1138&numberchar[]=%3C%20%3E");
+      // console.log("Result[%s]", getQueryString({numberchar:["2<>3#$#","abcd","THX1138","< >"]}));
+    });
   });
 
   describe('getTicket()/releaseTicket()', function() {
