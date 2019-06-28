@@ -8,10 +8,9 @@ var dtk = require('../index');
 
 describe('resolver', function() {
   describe('init()', function() {
-    var Resolver = dtk.acquire('resolver');
-    var init = Resolver.__get__('init');
-    var createService = sinon.stub();
-    Resolver.__set__('createService', createService);
+    var Resolver;
+    var init;
+    var createService;
 
     var loggingFactory = dtk.createLoggingFactoryMock({ captureMethodCall: false });
     var ctx = {
@@ -19,6 +18,13 @@ describe('resolver', function() {
       T: loggingFactory.getTracer(),
       blockRef: 'app-restfetch',
     }
+
+    beforeEach(function() {
+      Resolver = dtk.acquire('resolver');
+      init = Resolver.__get__('init');
+      createService = sinon.stub();
+      Resolver.__set__('createService', createService);
+    })
 
     it('createService will not be called if enabled ~ false', function() {
       var services = {};
@@ -38,6 +44,18 @@ describe('resolver', function() {
       };
       init(ctx, services, mappings);
       assert.equal(createService.callCount, lodash.keys(mappings).length);
+    });
+
+    it('createService will be passed the correct arguments with right order', function() {
+      var services = {};
+      var mappings = {
+        "service_1": {},
+        "service_2": {},
+      };
+      init(ctx, services, mappings);
+      assert.equal(createService.callCount, lodash.keys(mappings).length);
+      assert.isTrue(createService.getCall(0).calledWith(ctx, services, "service_1", {}));
+      assert.isTrue(createService.getCall(1).calledWith(ctx, services, "service_2", {}));
     });
   });
 
@@ -63,13 +81,15 @@ describe('resolver', function() {
     var descriptor = {
       url: "https://api.github.com/repos/:owner/:repoId",
       method: "GET",
-      default: {
-        params: {
-          owner: 'apporo',
-          repoId: 'app-restfetch'
-        },
-        query: {
-          accessToken: '1234567890'
+      arguments: {
+        default: {
+          params: {
+            owner: 'apporo',
+            repoId: 'app-restfetch'
+          },
+          query: {
+            accessToken: '1234567890'
+          }
         }
       }
     }
