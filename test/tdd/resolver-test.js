@@ -8,10 +8,6 @@ var dtk = require('../index');
 
 describe('resolver', function() {
   describe('init()', function() {
-    var Resolver;
-    var init;
-    var createService;
-
     var loggingFactory = dtk.createLoggingFactoryMock({ captureMethodCall: false });
     var ctx = {
       L: loggingFactory.getLogger(),
@@ -19,12 +15,14 @@ describe('resolver', function() {
       blockRef: 'app-restfetch',
     }
 
+    var Resolver, init, createService;
+
     beforeEach(function() {
       Resolver = dtk.acquire('resolver');
       init = Resolver.__get__('init');
       createService = sinon.stub();
       Resolver.__set__('createService', createService);
-    })
+    });
 
     it('createService will not be called if enabled ~ false', function() {
       var services = {};
@@ -66,8 +64,6 @@ describe('resolver', function() {
       T: loggingFactory.getTracer(),
       blockRef: 'app-restfetch',
     }
-    var Resolver = dtk.acquire('resolver');
-    var buildFetchArgs = Resolver.__get__('buildFetchArgs');
 
     var context = {
       headers: {
@@ -104,6 +100,9 @@ describe('resolver', function() {
         type: ['api', 'sms']
       }
     }
+
+    var Resolver = dtk.acquire('resolver');
+    var buildFetchArgs = Resolver.__get__('buildFetchArgs');
 
     it('return the fetch parameters which built from the arguments of a method invocation', function() {
       var fa = buildFetchArgs(context, descriptor, methodArgs);
@@ -149,6 +148,7 @@ describe('resolver', function() {
       T: loggingFactory.getTracer(),
       blockRef: 'app-restfetch',
     }
+
     var Resolver = dtk.acquire('resolver');
     var getTicket = Resolver.__get__('getTicket');
 

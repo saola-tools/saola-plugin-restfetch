@@ -7,8 +7,8 @@ const fs = require('fs');
 const path = require('path');
 
 function Counselor(params = {}) {
-  let pluginCfg = lodash.get(params, ['sandboxConfig'], {});
-  let mappings = {};
+  const pluginCfg = lodash.get(params, ['sandboxConfig'], {});
+  const mappings = {};
 
   const mappingStore = pluginCfg.mappingStore || pluginCfg.mappingFolder;
   const mappingScope = pluginCfg.mappingScope || pluginCfg.mappingBundle;
@@ -80,4 +80,13 @@ function filenameFilter(dir, exts, fileinfos) {
     }
   }
   return fileinfos;
+}
+
+function sanitizeHttpHeaders() {
+}
+
+function unifyHttpHeaderName(name) {
+  return lodash.capitalize(name.toLowerCase()).replace(/-([a-z])/g, function (m, w) {
+    return '-' + w.toUpperCase();
+  });
 }
