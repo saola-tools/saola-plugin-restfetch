@@ -40,6 +40,7 @@
     "devebot": "^0.3.0",
     "node-fetch": "2.6.0",
     "path-to-regexp": "3.0.0",
+    "traverse": "^0.6.6",
     "valvekit": "0.2.0"
   },
   "devDependencies": {

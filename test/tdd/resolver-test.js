@@ -15,6 +15,12 @@ describe('resolver', function() {
       blockRef: 'app-restfetch',
     }
 
+    var services = {};
+    var mappings = {
+      "service_1": {},
+      "service_2": {},
+    };
+
     var Resolver, init, createService;
 
     beforeEach(function() {
@@ -25,31 +31,16 @@ describe('resolver', function() {
     });
 
     it('createService will not be called if enabled ~ false', function() {
-      var services = {};
-      var mappings = {
-        "service_1": {},
-        "service_2": {},
-      };
       init(ctx, services, mappings, false);
       assert.equal(createService.callCount, 0);
     });
 
     it('createService will be called to initialize every service descriptors', function() {
-      var services = {};
-      var mappings = {
-        "service_1": {},
-        "service_2": {},
-      };
       init(ctx, services, mappings);
       assert.equal(createService.callCount, lodash.keys(mappings).length);
     });
 
     it('createService will be passed the correct arguments with right order', function() {
-      var services = {};
-      var mappings = {
-        "service_1": {},
-        "service_2": {},
-      };
       init(ctx, services, mappings);
       assert.equal(createService.callCount, lodash.keys(mappings).length);
       assert.isTrue(createService.getCall(0).calledWith(ctx, services, "service_1", {}));

@@ -39,6 +39,78 @@ describe('counselor', function() {
       sanitizeHttpHeaders = Counselor.__get__('sanitizeHttpHeaders');
     });
 
-    it('traverse configuration and sanitize the names of HttpHeaders');
+    var mappings = {
+      "restfetch-example/githubApi": {
+        enabled: true,
+        methods: {
+          getListBranches: {
+            method: "GET",
+            url: "https://api.github.com/repos/:owner/:repoId/branches",
+            arguments: {
+              default: {
+                headers: {
+                  'content-type': 'application/json',
+                  'x-access-token': 'A8Ytr54o0Mn',
+                }
+              },
+              transform: function(owner, projectId) {
+                var p = {};
+                if (owner != null) {
+                  p.owner = owner;
+                }
+                if (projectId != null) {
+                  p.repoId = projectId;
+                }
+                return { params: p }
+              }
+            }
+          },
+          getProjectInfo: {
+            method: "GET",
+            url: "https://api.github.com/repos/:userOrOrgan/:projectId",
+            arguments: {
+              default: {
+                params: {
+                  userOrOrgan: 'apporo',
+                  projectId: 'app-restfront'
+                },
+                query: {}
+              },
+              transform: function(data) {
+                return data;
+              }
+            },
+            response: {
+              transform: function(res) {
+                return res.json();
+              }
+            },
+            exception: {
+              transform: function(error) {
+                return error;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    it('traverse configuration and sanitize the names of HttpHeaders', function() {
+      var newHeaders = {
+        'Content-Type': 'application/json',
+        'X-Access-Token': 'A8Ytr54o0Mn',
+      };
+      var expected = lodash.set(lodash.cloneDeep(mappings), [
+        "restfetch-example/githubApi", "methods", "getListBranches", "arguments", "default", "headers"
+      ], newHeaders);
+
+      var newMappings = sanitizeHttpHeaders(mappings);
+      assert.notDeepEqual(newMappings, mappings);
+      assert.deepEqual(newMappings, expected);
+
+      assert.deepEqual(lodash.get(newMappings, [
+        "restfetch-example/githubApi", "methods", "getListBranches", "arguments", "default", "headers"
+      ]), newHeaders);
+    });
   });
 });
