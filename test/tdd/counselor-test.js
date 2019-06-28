@@ -113,4 +113,116 @@ describe('counselor', function() {
       ]), newHeaders);
     });
   });
+
+  describe('Counselor() constructor', function() {
+    var Counselor, loadMappings;
+    var loggingFactory = dtk.createLoggingFactoryMock({ captureMethodCall: false });
+    var ctx = {
+      L: loggingFactory.getLogger(),
+      T: loggingFactory.getTracer(),
+      blockRef: 'app-restfetch',
+    }
+
+    var params = {
+      sandboxConfig: {
+        mappings: {
+          "restfetch-example/githubApi": {
+            enabled: false,
+            methods: {
+              getListBranches: {
+                arguments: {
+                  default: {
+                    headers: {
+                      'CONTENT-TYPE': 'text/plain',
+                      'x-access-Token': '1111-1111',
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        mappingStore: 'path-to-mappings-folder'
+      }
+    }
+
+    var mappings = {
+      "restfetch-example/githubApi": {
+        enabled: true,
+        methods: {
+          getListBranches: {
+            method: "GET",
+            url: "https://api.github.com/repos/:owner/:repoId/branches",
+            arguments: {
+              default: {
+                headers: {
+                  'content-type': 'application/json',
+                  'x-access-token': 'A8Ytr54o0Mn',
+                }
+              },
+              transform: function(owner, projectId) {
+                var p = {};
+                if (owner != null) {
+                  p.owner = owner;
+                }
+                if (projectId != null) {
+                  p.repoId = projectId;
+                }
+                return { params: p }
+              }
+            }
+          },
+          getProjectInfo: {
+            method: "GET",
+            url: "https://api.github.com/repos/:userOrOrgan/:projectId",
+            arguments: {
+              default: {
+                params: {
+                  userOrOrgan: 'apporo',
+                  projectId: 'app-restfront'
+                },
+                query: {}
+              },
+              transform: function(data) {
+                return data;
+              }
+            },
+            response: {
+              transform: function(res) {
+                return res.json();
+              }
+            },
+            exception: {
+              transform: function(error) {
+                return error;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    beforeEach(function() {
+      Counselor = dtk.acquire('counselor');
+      loadMappings = sinon.stub();
+      loadMappings.onFirstCall().returns(mappings);
+      Counselor.__set__('loadMappings', loadMappings);
+    });
+
+    it('Counselor will merge mappings properly', function() {
+      var expected = lodash.cloneDeep(mappings);
+      lodash.set(expected, [
+        "restfetch-example/githubApi", "methods", "getListBranches", "arguments", "default", "headers"
+      ], {
+        'Content-Type': 'text/plain',
+        'X-Access-Token': '1111-1111',
+      });
+      lodash.set(expected, ["restfetch-example/githubApi", "enabled"], false);
+
+      var c = new Counselor(params);
+
+      //console.log("newMappings: %s", JSON.stringify(c.mappings, null, 2));
+      assert.deepEqual(c.mappings, expected);
+    });
+  });
 });

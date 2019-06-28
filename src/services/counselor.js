@@ -14,11 +14,11 @@ function Counselor(params = {}) {
   const mappingStore = pluginCfg.mappingStore || pluginCfg.mappingFolder;
   const mappingScope = pluginCfg.mappingScope || pluginCfg.mappingBundle;
   if (lodash.isString(mappingStore)) {
-    lodash.merge(mappings, loadMappings(mappingStore, mappingScope));
+    lodash.merge(mappings, sanitizeHttpHeaders(loadMappings(mappingStore, mappingScope)));
   }
 
-  if (pluginCfg.mappings) {
-    lodash.merge(mappings, pluginCfg.mappings);
+  if (lodash.isObject(pluginCfg.mappings)) {
+    lodash.merge(mappings, sanitizeHttpHeaders(pluginCfg.mappings));
   }
 
   Object.defineProperty(this, 'mappings', {
