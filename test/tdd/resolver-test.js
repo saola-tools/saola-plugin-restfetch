@@ -17,8 +17,8 @@ describe('resolver', function() {
 
     var services = {};
     var mappings = {
-      "service_1": {},
-      "service_2": {},
+      "service_1": { "object": "#1" },
+      "service_2": { "object": "#2" },
     };
 
     var Resolver, init, createService;
@@ -43,8 +43,36 @@ describe('resolver', function() {
     it('createService will be passed the correct arguments with right order', function() {
       init(ctx, services, mappings);
       assert.equal(createService.callCount, lodash.keys(mappings).length);
-      assert.isTrue(createService.getCall(0).calledWith(ctx, services, "service_1", {}));
-      assert.isTrue(createService.getCall(1).calledWith(ctx, services, "service_2", {}));
+      assert.isTrue(createService.getCall(0).calledWith(ctx, services, "service_1", { "object": "#1" }));
+      assert.isTrue(createService.getCall(1).calledWith(ctx, services, "service_2", { "object": "#2" }));
+    });
+  });
+
+  describe('createService()', function() {
+    var loggingFactory = dtk.createLoggingFactoryMock({ captureMethodCall: false });
+    var ctx = {
+      L: loggingFactory.getLogger(),
+      T: loggingFactory.getTracer(),
+      blockRef: 'app-restfetch',
+    }
+
+    var services = {};
+    var serviceName = "service_1";
+    var serviceDescriptor = {};
+
+    var Resolver, createService, registerMethod;
+
+    beforeEach(function() {
+      Resolver = dtk.acquire('resolver');
+      createService = Resolver.__get__('createService');
+      registerMethod = sinon.stub();
+      Resolver.__set__('registerMethod', registerMethod);
+    });
+
+    it('registerMethod will not be called if serviceDescriptor.enabled ~ false', function() {
+      var serviceDescriptor = { enabled: false };
+      createService(ctx, services, serviceName, serviceDescriptor);
+      assert.equal(registerMethod.callCount, 0);
     });
   });
 
