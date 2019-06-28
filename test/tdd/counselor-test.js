@@ -114,6 +114,26 @@ describe('counselor', function() {
     });
   });
 
+  describe('loadMappings()', function() {
+    var loggingFactory = dtk.createLoggingFactoryMock({ captureMethodCall: false });
+    var ctx = {
+      L: loggingFactory.getLogger(),
+      T: loggingFactory.getTracer(),
+      blockRef: 'app-restfetch',
+    }
+
+    var Counselor, loadMappings, fs;
+
+    beforeEach(function() {
+      Counselor = dtk.acquire('counselor');
+      loadMappings = Counselor.__get__('loadMappings');
+      fs = {
+        statSync: sinon.stub()
+      };
+      Counselor.__set__('fs', fs);
+    });
+  });
+
   describe('Counselor() constructor', function() {
     var Counselor, loadMappings;
     var loggingFactory = dtk.createLoggingFactoryMock({ captureMethodCall: false });
@@ -142,11 +162,13 @@ describe('counselor', function() {
             }
           }
         },
-        mappingStore: 'path-to-mappings-folder'
+        mappingStore: {
+          'restfetch-example': 'path-to-mappings-folder',
+        }
       }
     }
 
-    var mappings = {
+    var mockMappings = {
       "restfetch-example/githubApi": {
         enabled: true,
         methods: {
@@ -205,12 +227,12 @@ describe('counselor', function() {
     beforeEach(function() {
       Counselor = dtk.acquire('counselor');
       loadMappings = sinon.stub();
-      loadMappings.onFirstCall().returns(mappings);
+      loadMappings.onFirstCall().returns(mockMappings);
       Counselor.__set__('loadMappings', loadMappings);
     });
 
     it('Counselor will merge mappings properly', function() {
-      var expected = lodash.cloneDeep(mappings);
+      var expected = lodash.cloneDeep(mockMappings);
       lodash.set(expected, [
         "restfetch-example/githubApi", "methods", "getListBranches", "arguments", "default", "headers"
       ], {

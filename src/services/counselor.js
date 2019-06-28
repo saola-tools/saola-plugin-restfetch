@@ -11,10 +11,16 @@ function Counselor(params = {}) {
   const pluginCfg = lodash.get(params, ['sandboxConfig'], {});
   const mappings = {};
 
-  const mappingStore = pluginCfg.mappingStore || pluginCfg.mappingFolder;
-  const mappingScope = pluginCfg.mappingScope || pluginCfg.mappingBundle;
+  let mappingStore = pluginCfg.mappingStore;
   if (lodash.isString(mappingStore)) {
-    lodash.merge(mappings, sanitizeHttpHeaders(loadMappings(mappingStore, mappingScope)));
+    let store = {};
+    store['app-restfetch'] = mappingStore;
+    mappingStore = store;
+  }
+  if (lodash.isObject(mappingStore)) {
+    lodash.forOwn(mappingStore, function(folder, bundle) {
+      lodash.merge(mappings, sanitizeHttpHeaders(loadMappings(folder, bundle)));
+    });
   }
 
   if (lodash.isObject(pluginCfg.mappings)) {
@@ -31,13 +37,13 @@ function Counselor(params = {}) {
 
 module.exports = Counselor;
 
-function loadMappings(mappingSource, mappingBundle) {
+function loadMappings(mappingSource, serviceBundle) {
   let mappings;
   const sourceStat = fs.statSync(mappingSource);
   if (sourceStat.isFile()) {
     const mappingScript = require(mappingSource);
     if (lodash.isFunction(mappingScript)) {
-      mappings = mappingScript(mappingBundle);
+      mappings = mappingScript(serviceBundle);
     } else {
       mappings = mappingScript;
     }
@@ -49,8 +55,8 @@ function loadMappings(mappingSource, mappingBundle) {
     });
     lodash.forEach(keys, function(key) {
       let serviceName = chores.stringCamelCase(key);
-      if (lodash.isString(mappingBundle) && mappingBundle.length > 0) {
-        serviceName = mappingBundle + '/' + serviceName;
+      if (lodash.isString(serviceBundle) && serviceBundle.length > 0) {
+        serviceName = serviceBundle + '/' + serviceName;
       }
       mappings[serviceName] = require(path.join(mappingSource, key + '.js'));
     });
