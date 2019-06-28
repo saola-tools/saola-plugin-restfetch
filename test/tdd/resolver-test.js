@@ -141,6 +141,19 @@ describe('resolver', function() {
     });
   })
 
+  describe('getQueryString()', function() {
+    var Resolver = dtk.acquire('resolver');
+    var getQueryString = Resolver.__get__('getQueryString');
+
+    it('Create a query string properly', function() {
+      assert.isEmpty(getQueryString({}));
+      assert.equal(getQueryString({ abc: 123 }), "abc=123");
+      assert.equal(getQueryString({ id: "Aw762Ytu", sort: true, limit: 10 }), "id=Aw762Ytu&sort=true&limit=10");
+      assert.equal(getQueryString({ id: "A&762=tu", from: 10 }), "id=A%26762%3Dtu&from=10");
+      //console.log("Result[%s]", getQueryString({ id: "A&762=tu", from: 10 }));
+    })
+  });
+
   describe('getTicket()/releaseTicket()', function() {
     var loggingFactory = dtk.createLoggingFactoryMock({ captureMethodCall: false });
     var ctx = {
