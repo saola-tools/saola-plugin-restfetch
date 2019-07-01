@@ -12,7 +12,7 @@ describe('counselor', function() {
 
     beforeEach(function() {
       Counselor = dtk.acquire('counselor');
-      unifyHttpHeaderName = Counselor.__get__('unifyHttpHeaderName');
+      unifyHttpHeaderName = dtk.get(Counselor, 'unifyHttpHeaderName');
     });
 
     it('unifyHttpHeaderName() will unify the names of HttpHeaders correctly', function() {
@@ -36,7 +36,7 @@ describe('counselor', function() {
 
     beforeEach(function() {
       Counselor = dtk.acquire('counselor');
-      sanitizeHttpHeaders = Counselor.__get__('sanitizeHttpHeaders');
+      sanitizeHttpHeaders = dtk.get(Counselor, 'sanitizeHttpHeaders');
     });
 
     var mappings = {
@@ -126,11 +126,11 @@ describe('counselor', function() {
 
     beforeEach(function() {
       Counselor = dtk.acquire('counselor');
-      loadMappings = Counselor.__get__('loadMappings');
+      loadMappings = dtk.get(Counselor, 'loadMappings');
       fs = {
         statSync: sinon.stub()
       };
-      Counselor.__set__('fs', fs);
+      dtk.set(Counselor, 'fs', fs);
     });
   });
 
@@ -228,7 +228,7 @@ describe('counselor', function() {
       Counselor = dtk.acquire('counselor');
       loadMappings = sinon.stub();
       loadMappings.onFirstCall().returns(mockMappings);
-      Counselor.__set__('loadMappings', loadMappings);
+      dtk.set(Counselor, 'loadMappings', loadMappings);
     });
 
     it('Counselor will merge mappings properly', function() {

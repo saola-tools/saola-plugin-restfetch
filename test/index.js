@@ -14,6 +14,14 @@ function TestUtils() {
     return rewire(path.join(__dirname, '../lib/services', modulePath));
   }
 
+  this.get = function(rewiredModule, propName) {
+    return rewiredModule.__get__(propName);
+  }
+
+  this.set = function(rewiredModule, propName, newValue) {
+    rewiredModule.__set__(propName, newValue);
+  }
+
   this.createLoggingFactoryMock = function(params) {
     return new LoggingFactoryMock(params);
   }

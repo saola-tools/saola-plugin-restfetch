@@ -25,9 +25,9 @@ describe('resolver', function() {
 
     beforeEach(function() {
       Resolver = dtk.acquire('resolver');
-      init = Resolver.__get__('init');
+      init = dtk.get(Resolver, 'init');
       createService = sinon.stub();
-      Resolver.__set__('createService', createService);
+      dtk.set(Resolver, 'createService', createService);
     });
 
     it('createService will not be called if enabled ~ false', function() {
@@ -64,9 +64,9 @@ describe('resolver', function() {
 
     beforeEach(function() {
       Resolver = dtk.acquire('resolver');
-      createService = Resolver.__get__('createService');
+      createService = dtk.get(Resolver, 'createService');
       registerMethod = sinon.stub();
-      Resolver.__set__('registerMethod', registerMethod);
+      dtk.set(Resolver, 'registerMethod', registerMethod);
     });
 
     it('registerMethod will not be called if serviceDescriptor.enabled ~ false', function() {
@@ -121,7 +121,7 @@ describe('resolver', function() {
     }
 
     var Resolver = dtk.acquire('resolver');
-    var buildFetchArgs = Resolver.__get__('buildFetchArgs');
+    var buildFetchArgs = dtk.get(Resolver, 'buildFetchArgs');
 
     it('return the fetch parameters which built from the arguments of a method invocation', function() {
       var fa = buildFetchArgs(context, descriptor, methodArgs);
@@ -162,7 +162,7 @@ describe('resolver', function() {
 
   describe('getQueryString()', function() {
     var Resolver = dtk.acquire('resolver');
-    var getQueryString = Resolver.__get__('getQueryString');
+    var getQueryString = dtk.get(Resolver, 'getQueryString');
 
     it('Create a query string properly', function() {
       assert.isEmpty(getQueryString({}));
@@ -190,7 +190,7 @@ describe('resolver', function() {
     }
 
     var Resolver = dtk.acquire('resolver');
-    var getTicket = Resolver.__get__('getTicket');
+    var getTicket = dtk.get(Resolver, 'getTicket');
 
     it('return default ticket if throughputValve is empty', function() {
       var ticket = getTicket(ctx);
