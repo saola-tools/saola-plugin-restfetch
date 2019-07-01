@@ -37,28 +37,28 @@ function Counselor(params = {}) {
 
 module.exports = Counselor;
 
-function loadMappings(mappingSource, serviceBundle, keyGenerator) {
+function loadMappings(mappingPath, mappingName, keyGenerator) {
   if (!lodash.isFunction(keyGenerator)) {
     keyGenerator = function(mappingName, fileInfo, fileBody) {
       return mappingName;
     }
   }
   let mappings;
-  const mappingStat = fs.statSync(mappingSource);
+  const mappingStat = fs.statSync(mappingPath);
   if (mappingStat.isFile()) {
-    const mappingScript = require(mappingSource);
+    const mappingScript = require(mappingPath);
     if (lodash.isFunction(mappingScript)) {
-      mappings = mappingScript(serviceBundle);
+      mappings = mappingScript(mappingName);
     } else {
       mappings = mappingScript;
     }
   }
   if (mappingStat.isDirectory()) {
     mappings = {};
-    const fileinfos = filenameFilter(mappingSource, ['.js']);
+    const fileinfos = filenameFilter(mappingPath, ['.js']);
     lodash.forEach(fileinfos, function(info) {
       const fileBody = require(path.join(info.dir, info.base));
-      const mappingId = keyGenerator(serviceBundle, info, fileBody);
+      const mappingId = keyGenerator(mappingName, info, fileBody);
       mappings[mappingId] = fileBody;
     });
   }
