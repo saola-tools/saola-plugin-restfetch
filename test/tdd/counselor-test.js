@@ -133,6 +133,10 @@ describe('counselor', function() {
       isFile: function() { return true },
     }
 
+    function mappingFileFilter(fileinfo) {
+      return ['.js'].indexOf(fileinfo.ext) >= 0;
+    }
+
     var Counselor, traverseDirRecursively, fs;
 
     beforeEach(function() {
@@ -155,7 +159,7 @@ describe('counselor', function() {
       fs.statSync.withArgs(MAPPING_HOME_DIR + "/github-api.js").returns(statOfFile)
       fs.statSync.withArgs(MAPPING_HOME_DIR + "/gitlab-api.js").returns(statOfFile)
       fs.statSync.withArgs(MAPPING_HOME_DIR + "/readme.md").returns(statOfFile);
-      assert.deepEqual(traverseDirRecursively(MAPPING_HOME_DIR, MAPPING_HOME_DIR, [".js"], []), [
+      assert.deepEqual(traverseDirRecursively(MAPPING_HOME_DIR, MAPPING_HOME_DIR, mappingFileFilter), [
         {
           "home": "/home/devebot/example/mappings",
           "path": "",
@@ -203,7 +207,7 @@ describe('counselor', function() {
       fs.statSync.withArgs(MAPPING_HOME_DIR + "/vcs/git/gitlab-api.js").returns(statOfFile)
       fs.statSync.withArgs(MAPPING_HOME_DIR + "/vcs/git/readme.md").returns(statOfFile);
 
-      assert.deepEqual(traverseDirRecursively(MAPPING_HOME_DIR, MAPPING_HOME_DIR, [".js"]), [
+      assert.deepEqual(traverseDirRecursively(MAPPING_HOME_DIR, MAPPING_HOME_DIR, mappingFileFilter), [
         {
           "home": "/home/devebot/example/mappings",
           "path": "/vcs/git",
