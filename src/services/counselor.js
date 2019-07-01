@@ -70,16 +70,22 @@ function filenameFilter(dir, exts, fileinfos) {
       exts = [exts];
     }
   }
-  fileinfos = fileinfos || [];
-  let files;
-  try {
-    files = fs.readdirSync(dir);
-  } catch (err) {
-    files = [];
+  if (!lodash.isArray(fileinfos)) {
+    fileinfos = [];
   }
+  try {
+    return filenameFilterDir(dir, exts, fileinfos);
+  } catch (err) {
+    return fileinfos;
+  }
+}
+
+function filenameFilterDir(dir, exts, fileinfos) {
+  const files = fs.readdirSync(dir);
   for (const i in files) {
-    const filename = dir + '/' + files[i];
-    if (fs.statSync(filename).isFile()) {
+    const filename = path.join(dir, files[i]);
+    const filestat = fs.statSync(filename);
+    if (filestat.isFile()) {
       const fileinfo = path.parse(filename);
       if (exts == null || exts.indexOf(fileinfo.ext) >= 0) {
         fileinfos.push(lodash.pick(fileinfo, ["dir", "name", "ext"]));
