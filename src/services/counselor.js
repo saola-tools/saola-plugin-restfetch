@@ -80,7 +80,7 @@ function filenameFilter(dir, exts, fileinfos) {
   }
 }
 
-function filenameFilterDir(dir, exts, fileinfos) {
+function filenameFilterDir(dir, exts, fileinfos = []) {
   const files = fs.readdirSync(dir);
   for (const i in files) {
     const filename = path.join(dir, files[i]);

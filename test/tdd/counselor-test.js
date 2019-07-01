@@ -114,6 +114,55 @@ describe('counselor', function() {
     });
   });
 
+  describe('filenameFilter()', function() {
+    var loggingFactory = dtk.createLoggingFactoryMock({ captureMethodCall: false });
+    var ctx = {
+      L: loggingFactory.getLogger(),
+      T: loggingFactory.getTracer(),
+      blockRef: 'app-restfetch',
+    }
+
+    var Counselor, filenameFilterDir, fs;
+
+    beforeEach(function() {
+      Counselor = dtk.acquire('counselor');
+      filenameFilterDir = dtk.get(Counselor, 'filenameFilterDir');
+      fs = {
+        readdirSync: sinon.stub(),
+        statSync: sinon.stub()
+      };
+      dtk.set(Counselor, 'fs', fs);
+    });
+
+    it('get all of names of filtered files in a directory', function() {
+      fs.readdirSync.withArgs("/home/devebot/example/mappings")
+        .returns([
+          "github-api.js",
+          "gitlab-api.js",
+          "readme.md"
+        ])
+      const statOfFile = {
+        isDirectory: function() { return false },
+        isFile: function() { return true },
+      }
+      fs.statSync.withArgs("/home/devebot/example/mappings/github-api.js").returns(statOfFile)
+      fs.statSync.withArgs("/home/devebot/example/mappings/gitlab-api.js").returns(statOfFile)
+      fs.statSync.withArgs("/home/devebot/example/mappings/readme.md").returns(statOfFile);
+      assert.deepEqual(filenameFilterDir("/home/devebot/example/mappings", [".js"], []), [
+        {
+          "dir": "/home/devebot/example/mappings",
+          "name": "github-api",
+          "ext": ".js"
+        },
+        {
+          "dir": "/home/devebot/example/mappings",
+          "name": "gitlab-api",
+          "ext": ".js"
+        }
+      ]);
+    });
+  });
+
   describe('loadMappings()', function() {
     var loggingFactory = dtk.createLoggingFactoryMock({ captureMethodCall: false });
     var ctx = {
