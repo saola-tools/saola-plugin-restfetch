@@ -18,8 +18,8 @@ function Counselor(params = {}) {
     mappingStore = store;
   }
   if (lodash.isObject(mappingStore)) {
-    lodash.forOwn(mappingStore, function(folder, bundle) {
-      lodash.merge(mappings, sanitizeHttpHeaders(loadMappings(folder, bundle)));
+    lodash.forOwn(mappingStore, function(path, name) {
+      lodash.merge(mappings, sanitizeHttpHeaders(loadMappings(path, name, mappingIdGenerator)));
     });
   }
 
@@ -37,10 +37,15 @@ function Counselor(params = {}) {
 
 module.exports = Counselor;
 
-function loadMappings(mappingSource, serviceBundle) {
+function loadMappings(mappingSource, serviceBundle, keyGenerator) {
+  if (!lodash.isFunction(keyGenerator)) {
+    keyGenerator = function(mappingName, fileInfo, fileBody) {
+      return mappingName;
+    }
+  }
   let mappings;
-  const sourceStat = fs.statSync(mappingSource);
-  if (sourceStat.isFile()) {
+  const mappingStat = fs.statSync(mappingSource);
+  if (mappingStat.isFile()) {
     const mappingScript = require(mappingSource);
     if (lodash.isFunction(mappingScript)) {
       mappings = mappingScript(serviceBundle);
@@ -48,20 +53,24 @@ function loadMappings(mappingSource, serviceBundle) {
       mappings = mappingScript;
     }
   }
-  if (sourceStat.isDirectory()) {
+  if (mappingStat.isDirectory()) {
     mappings = {};
-    const keys = lodash.map(filenameFilter(mappingSource, ['.js']), function(info) {
-      return info.name;
-    });
-    lodash.forEach(keys, function(key) {
-      let serviceName = chores.stringCamelCase(key);
-      if (lodash.isString(serviceBundle) && serviceBundle.length > 0) {
-        serviceName = serviceBundle + '/' + serviceName;
-      }
-      mappings[serviceName] = require(path.join(mappingSource, key + '.js'));
+    const fileinfos = filenameFilter(mappingSource, ['.js']);
+    lodash.forEach(fileinfos, function(info) {
+      const fileBody = require(path.join(info.dir, info.base));
+      const mappingId = keyGenerator(serviceBundle, info, fileBody);
+      mappings[mappingId] = fileBody;
     });
   }
   return mappings;
+}
+
+function mappingIdGenerator(mappingName, fileinfo) {
+  let serviceName = chores.stringCamelCase(fileinfo.name);
+  if (lodash.isString(mappingName) && mappingName.length > 0) {
+    serviceName = mappingName + '/' + serviceName;
+  }
+  return serviceName;
 }
 
 function filenameFilter(dir, exts, fileinfos) {
