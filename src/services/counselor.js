@@ -19,7 +19,7 @@ function Counselor(params = {}) {
   }
   if (lodash.isObject(mappingStore)) {
     lodash.forOwn(mappingStore, function(path, name) {
-      lodash.merge(mappings, sanitizeHttpHeaders(loadMappings(path, name, mappingIdGenerator)));
+      lodash.merge(mappings, sanitizeHttpHeaders(loadMappingStore(path, name, mappingIdGenerator)));
     });
   }
 
@@ -37,7 +37,7 @@ function Counselor(params = {}) {
 
 module.exports = Counselor;
 
-function loadMappings(mappingPath, mappingName, keyGenerator) {
+function loadMappingStore(mappingPath, mappingName, keyGenerator) {
   if (!lodash.isFunction(keyGenerator)) {
     keyGenerator = function(mappingName, fileInfo, fileBody) {
       return mappingName;
@@ -55,7 +55,7 @@ function loadMappings(mappingPath, mappingName, keyGenerator) {
   }
   if (mappingStat.isDirectory()) {
     mappings = {};
-    const fileinfos = filenameFilter(mappingPath, ['.js']);
+    const fileinfos = traverseDir(mappingPath, ['.js']);
     lodash.forEach(fileinfos, function(info) {
       const fileBody = require(path.join(info.dir, info.base));
       const mappingId = keyGenerator(mappingName, info, fileBody);
@@ -73,10 +73,10 @@ function mappingIdGenerator(mappingName, fileinfo) {
   return serviceName;
 }
 
-function filenameFilter(dir, exts, fileinfos) {
-  if (exts != null) {
-    if (!lodash.isArray(exts)) {
-      exts = [exts];
+function traverseDir(dir, filter, fileinfos) {
+  if (filter != null) {
+    if (!lodash.isArray(filter)) {
+      filter = [filter];
     }
   }
   if (!lodash.isArray(fileinfos)) {
@@ -84,19 +84,19 @@ function filenameFilter(dir, exts, fileinfos) {
   }
   try {
     dir = path.normalize(dir);
-    return filenameFilterDir(dir, dir, exts, fileinfos);
+    return traverseDirRecursively(dir, dir, filter, fileinfos);
   } catch (err) {
     return fileinfos;
   }
 }
 
-function filenameFilterDir(homeDir, dir, exts, fileinfos = []) {
+function traverseDirRecursively(homeDir, dir, exts, fileinfos = []) {
   const files = fs.readdirSync(dir);
   for (const i in files) {
     const filename = path.join(dir, files[i]);
     const filestat = fs.statSync(filename);
     if (filestat.isDirectory()) {
-      filenameFilterDir(homeDir, filename, exts, fileinfos);
+      traverseDirRecursively(homeDir, filename, exts, fileinfos);
     } else if (filestat.isFile()) {
       const fileinfo = path.parse(filename);
       if (exts == null || exts.indexOf(fileinfo.ext) >= 0) {

@@ -115,7 +115,7 @@ describe('counselor', function() {
     });
   });
 
-  describe('filenameFilter()', function() {
+  describe('traverseDir()', function() {
     var loggingFactory = dtk.createLoggingFactoryMock({ captureMethodCall: false });
     var ctx = {
       L: loggingFactory.getLogger(),
@@ -133,11 +133,11 @@ describe('counselor', function() {
       isFile: function() { return true },
     }
 
-    var Counselor, filenameFilterDir, fs;
+    var Counselor, traverseDirRecursively, fs;
 
     beforeEach(function() {
       Counselor = dtk.acquire('counselor');
-      filenameFilterDir = dtk.get(Counselor, 'filenameFilterDir');
+      traverseDirRecursively = dtk.get(Counselor, 'traverseDirRecursively');
       fs = {
         readdirSync: sinon.stub(),
         statSync: sinon.stub()
@@ -155,7 +155,7 @@ describe('counselor', function() {
       fs.statSync.withArgs(MAPPING_HOME_DIR + "/github-api.js").returns(statOfFile)
       fs.statSync.withArgs(MAPPING_HOME_DIR + "/gitlab-api.js").returns(statOfFile)
       fs.statSync.withArgs(MAPPING_HOME_DIR + "/readme.md").returns(statOfFile);
-      assert.deepEqual(filenameFilterDir(MAPPING_HOME_DIR, MAPPING_HOME_DIR, [".js"], []), [
+      assert.deepEqual(traverseDirRecursively(MAPPING_HOME_DIR, MAPPING_HOME_DIR, [".js"], []), [
         {
           "home": "/home/devebot/example/mappings",
           "path": "",
@@ -203,7 +203,7 @@ describe('counselor', function() {
       fs.statSync.withArgs(MAPPING_HOME_DIR + "/vcs/git/gitlab-api.js").returns(statOfFile)
       fs.statSync.withArgs(MAPPING_HOME_DIR + "/vcs/git/readme.md").returns(statOfFile);
 
-      assert.deepEqual(filenameFilterDir(MAPPING_HOME_DIR, MAPPING_HOME_DIR, [".js"]), [
+      assert.deepEqual(traverseDirRecursively(MAPPING_HOME_DIR, MAPPING_HOME_DIR, [".js"]), [
         {
           "home": "/home/devebot/example/mappings",
           "path": "/vcs/git",
@@ -232,7 +232,7 @@ describe('counselor', function() {
     });
   });
 
-  describe('loadMappings()', function() {
+  describe('loadMappingStore()', function() {
     var loggingFactory = dtk.createLoggingFactoryMock({ captureMethodCall: false });
     var ctx = {
       L: loggingFactory.getLogger(),
@@ -240,11 +240,11 @@ describe('counselor', function() {
       blockRef: 'app-restfetch',
     }
 
-    var Counselor, loadMappings, fs;
+    var Counselor, loadMappingStore, fs;
 
     beforeEach(function() {
       Counselor = dtk.acquire('counselor');
-      loadMappings = dtk.get(Counselor, 'loadMappings');
+      loadMappingStore = dtk.get(Counselor, 'loadMappingStore');
       fs = {
         statSync: sinon.stub()
       };
@@ -253,7 +253,7 @@ describe('counselor', function() {
   });
 
   describe('Counselor() constructor', function() {
-    var Counselor, loadMappings;
+    var Counselor, loadMappingStore;
     var loggingFactory = dtk.createLoggingFactoryMock({ captureMethodCall: false });
     var ctx = {
       L: loggingFactory.getLogger(),
@@ -344,9 +344,9 @@ describe('counselor', function() {
 
     beforeEach(function() {
       Counselor = dtk.acquire('counselor');
-      loadMappings = sinon.stub();
-      loadMappings.onFirstCall().returns(mockMappings);
-      dtk.set(Counselor, 'loadMappings', loadMappings);
+      loadMappingStore = sinon.stub();
+      loadMappingStore.onFirstCall().returns(mockMappings);
+      dtk.set(Counselor, 'loadMappingStore', loadMappingStore);
     });
 
     it('Counselor will merge mappings properly', function() {
