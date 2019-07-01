@@ -2,6 +2,7 @@
 
 var devebot = require('devebot');
 var lodash = devebot.require('lodash');
+var path = require('path');
 var assert = require('chai').assert;
 var sinon = require('sinon');
 var dtk = require('../index');
@@ -122,6 +123,16 @@ describe('counselor', function() {
       blockRef: 'app-restfetch',
     }
 
+    var MAPPING_HOME_DIR = "/home/devebot/example/mappings";
+    const statOfDirectory = {
+      isDirectory: function() { return true },
+      isFile: function() { return false },
+    }
+    const statOfFile = {
+      isDirectory: function() { return false },
+      isFile: function() { return true },
+    }
+
     var Counselor, filenameFilterDir, fs;
 
     beforeEach(function() {
@@ -135,28 +146,86 @@ describe('counselor', function() {
     });
 
     it('get all of names of filtered files in a directory', function() {
-      fs.readdirSync.withArgs("/home/devebot/example/mappings")
+      fs.readdirSync.withArgs(MAPPING_HOME_DIR)
         .returns([
           "github-api.js",
           "gitlab-api.js",
           "readme.md"
         ])
-      const statOfFile = {
-        isDirectory: function() { return false },
-        isFile: function() { return true },
-      }
-      fs.statSync.withArgs("/home/devebot/example/mappings/github-api.js").returns(statOfFile)
-      fs.statSync.withArgs("/home/devebot/example/mappings/gitlab-api.js").returns(statOfFile)
-      fs.statSync.withArgs("/home/devebot/example/mappings/readme.md").returns(statOfFile);
-      assert.deepEqual(filenameFilterDir("/home/devebot/example/mappings", [".js"], []), [
+      fs.statSync.withArgs(MAPPING_HOME_DIR + "/github-api.js").returns(statOfFile)
+      fs.statSync.withArgs(MAPPING_HOME_DIR + "/gitlab-api.js").returns(statOfFile)
+      fs.statSync.withArgs(MAPPING_HOME_DIR + "/readme.md").returns(statOfFile);
+      assert.deepEqual(filenameFilterDir(MAPPING_HOME_DIR, MAPPING_HOME_DIR, [".js"], []), [
         {
+          "home": "/home/devebot/example/mappings",
+          "path": "",
           "dir": "/home/devebot/example/mappings",
+          "base": "github-api.js",
           "name": "github-api",
           "ext": ".js"
         },
         {
+          "home": "/home/devebot/example/mappings",
+          "path": "",
           "dir": "/home/devebot/example/mappings",
+          "base": "gitlab-api.js",
           "name": "gitlab-api",
+          "ext": ".js"
+        }
+      ]);
+    });
+
+    it('get all of names of recursive filtered files in a directory', function() {
+      fs.readdirSync.withArgs(MAPPING_HOME_DIR).returns([
+        "api",
+        "vcs",
+        "doc",
+        "index.js",
+        "readme.md"
+      ]);
+      fs.statSync.withArgs(MAPPING_HOME_DIR + "/api").returns(statOfDirectory);
+      fs.statSync.withArgs(MAPPING_HOME_DIR + "/vcs").returns(statOfDirectory);
+      fs.statSync.withArgs(MAPPING_HOME_DIR + "/doc").returns(statOfDirectory);
+      fs.statSync.withArgs(MAPPING_HOME_DIR + "/index.js").returns(statOfFile)
+      fs.statSync.withArgs(MAPPING_HOME_DIR + "/readme.md").returns(statOfFile);
+
+      fs.readdirSync.withArgs(MAPPING_HOME_DIR + "/vcs").returns([
+        "git"
+      ]);
+      fs.statSync.withArgs(MAPPING_HOME_DIR + "/vcs/git").returns(statOfDirectory)
+
+      fs.readdirSync.withArgs(MAPPING_HOME_DIR + "/vcs/git").returns([
+        "github-api.js",
+        "gitlab-api.js",
+        "readme.md"
+      ]);
+      fs.statSync.withArgs(MAPPING_HOME_DIR + "/vcs/git/github-api.js").returns(statOfFile)
+      fs.statSync.withArgs(MAPPING_HOME_DIR + "/vcs/git/gitlab-api.js").returns(statOfFile)
+      fs.statSync.withArgs(MAPPING_HOME_DIR + "/vcs/git/readme.md").returns(statOfFile);
+
+      assert.deepEqual(filenameFilterDir(MAPPING_HOME_DIR, MAPPING_HOME_DIR, [".js"]), [
+        {
+          "home": "/home/devebot/example/mappings",
+          "path": "/vcs/git",
+          "dir": "/home/devebot/example/mappings/vcs/git",
+          "base": "github-api.js",
+          "name": "github-api",
+          "ext": ".js"
+        },
+        {
+          "home": "/home/devebot/example/mappings",
+          "path": "/vcs/git",
+          "dir": "/home/devebot/example/mappings/vcs/git",
+          "base": "gitlab-api.js",
+          "name": "gitlab-api",
+          "ext": ".js"
+        },
+        {
+          "home": "/home/devebot/example/mappings",
+          "path": "",
+          "dir": "/home/devebot/example/mappings",
+          "base": "index.js",
+          "name": "index",
           "ext": ".js"
         }
       ]);

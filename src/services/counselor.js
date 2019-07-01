@@ -74,21 +74,31 @@ function filenameFilter(dir, exts, fileinfos) {
     fileinfos = [];
   }
   try {
-    return filenameFilterDir(dir, exts, fileinfos);
+    dir = path.normalize(dir);
+    return filenameFilterDir(dir, dir, exts, fileinfos);
   } catch (err) {
     return fileinfos;
   }
 }
 
-function filenameFilterDir(dir, exts, fileinfos = []) {
+function filenameFilterDir(homeDir, dir, exts, fileinfos = []) {
   const files = fs.readdirSync(dir);
   for (const i in files) {
     const filename = path.join(dir, files[i]);
     const filestat = fs.statSync(filename);
-    if (filestat.isFile()) {
+    if (filestat.isDirectory()) {
+      filenameFilterDir(homeDir, filename, exts, fileinfos);
+    } else if (filestat.isFile()) {
       const fileinfo = path.parse(filename);
       if (exts == null || exts.indexOf(fileinfo.ext) >= 0) {
-        fileinfos.push(lodash.pick(fileinfo, ["dir", "name", "ext"]));
+        fileinfos.push({
+          home: homeDir,
+          path: fileinfo.dir.slice(homeDir.length),
+          dir: fileinfo.dir,
+          base: fileinfo.base,
+          name: fileinfo.name,
+          ext: fileinfo.ext
+        });
       }
     }
   }
