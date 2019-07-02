@@ -116,6 +116,9 @@ function traverseDir(dir, filter, fileinfos) {
   }
   try {
     dir = path.normalize(dir);
+    if (dir && dir !== '/' && dir.length > 1) {
+      dir = dir.replace(/\/*$/, '');
+    }
     return traverseDirRecursively(dir, dir, filter, fileinfos);
   } catch (err) {
     return fileinfos;

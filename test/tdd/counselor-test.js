@@ -115,6 +115,50 @@ describe('counselor', function() {
     });
   });
 
+  describe('traverseDir()', function() {
+    var Counselor, traverseDir, traverseDirRecursively;
+
+    beforeEach(function() {
+      Counselor = dtk.acquire('counselor');
+      traverseDir = dtk.get(Counselor, 'traverseDir');
+      traverseDirRecursively = dtk.spy(Counselor, 'traverseDirRecursively');
+    });
+
+    it('should standardize the directory path', function() {
+      let args;
+
+      traverseDir("", [".js"]);
+      args = traverseDirRecursively.getCall(0).args;
+      assert.equal(args[0], ".");
+      assert.equal(args[1], ".");
+      traverseDirRecursively.resetHistory();
+
+      traverseDir("/", [".js"]);
+      args = traverseDirRecursively.getCall(0).args;
+      assert.equal(args[0], "/");
+      assert.equal(args[1], "/");
+      traverseDirRecursively.resetHistory();
+
+      traverseDir("/home/devebot/example", [".js"]);
+      args = traverseDirRecursively.getCall(0).args;
+      assert.equal(args[0], "/home/devebot/example");
+      assert.equal(args[1], "/home/devebot/example");
+      traverseDirRecursively.resetHistory();
+
+      traverseDir("/home/devebot/example/", [".js"]);
+      args = traverseDirRecursively.getCall(0).args;
+      assert.equal(args[0], "/home/devebot/example");
+      assert.equal(args[1], "/home/devebot/example");
+      traverseDirRecursively.resetHistory();
+    });
+
+    it('should match filenames with a RegExp');
+
+    it('should match filenames with an array of extensions');
+
+    it('should match filenames with a string');
+  });
+
   describe('traverseDirRecursively()', function() {
     var loggingFactory = dtk.createLoggingFactoryMock({ captureMethodCall: false });
     var ctx = {

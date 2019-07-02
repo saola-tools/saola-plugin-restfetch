@@ -22,6 +22,15 @@ function TestUtils() {
     rewiredModule.__set__(propName, newValue);
   }
 
+  this.spy = function(rewiredModule, propName) {
+    var origin = this.get(rewiredModule, propName);
+    if (lodash.isFunction(origin)) {
+      var spied = sinon.spy(origin);
+      this.set(rewiredModule, propName, spied);
+    }
+    return this.get(rewiredModule, propName);
+  }
+
   this.createLoggingFactoryMock = function(params) {
     return new LoggingFactoryMock(params);
   }
