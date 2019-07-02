@@ -158,7 +158,9 @@ describe('counselor', function() {
       traverseDir("/home/devebot", /\.js$/);
       args = traverseDirRecursively.getCall(0).args;
       const filter = args[2];
+      // make sure the "filter" is a function
       assert.isFunction(filter);
+      // assert that "filter" satisfied the provided regular expression
       assert.isTrue(filter({ path: "/mappings", base: "github-api.js" }));
       assert.isFalse(filter({ path: "/mappings", base: "github-api.md" }));
       assert.isFalse(filter({ path: "/mappings", base: "github.jsi.md" }));
