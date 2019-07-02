@@ -124,7 +124,7 @@ function traverseDir(dir, filter, fileinfos) {
   }
   try {
     dir = path.normalize(dir);
-    if (dir && dir !== path.delimiter && dir.length > 1) {
+    if (dir && dir !== path.sep && dir.length > 1) {
       dir = dir.replace(/\/*$/, '');
     }
     return traverseDirRecursively(dir, dir, filter, fileinfos);
