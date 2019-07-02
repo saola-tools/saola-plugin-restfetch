@@ -133,29 +133,32 @@ describe('counselor', function() {
       assert.equal(args[1], ".");
       traverseDirRecursively.resetHistory();
 
-      traverseDir("/", [".js"]);
+      traverseDir(path.delimiter, [".js"]);
       args = traverseDirRecursively.getCall(0).args;
-      assert.equal(args[0], "/");
-      assert.equal(args[1], "/");
+      assert.equal(args[0], path.delimiter);
+      assert.equal(args[1], path.delimiter);
       traverseDirRecursively.resetHistory();
 
-      traverseDir("/home/devebot/example", [".js"]);
+      const MAPPING_DIR = ["", "home", "devebot", "example"].join(path.delimiter);
+
+      traverseDir(MAPPING_DIR, [".js"]);
       args = traverseDirRecursively.getCall(0).args;
-      assert.equal(args[0], "/home/devebot/example");
-      assert.equal(args[1], "/home/devebot/example");
+      assert.equal(args[0], MAPPING_DIR);
+      assert.equal(args[1], MAPPING_DIR);
       traverseDirRecursively.resetHistory();
 
-      traverseDir("/home/devebot/example/", [".js"]);
+      traverseDir(MAPPING_DIR + path.delimiter, [".js"]);
       args = traverseDirRecursively.getCall(0).args;
-      assert.equal(args[0], "/home/devebot/example");
-      assert.equal(args[1], "/home/devebot/example");
+      assert.equal(args[0], MAPPING_DIR);
+      assert.equal(args[1], MAPPING_DIR);
       traverseDirRecursively.resetHistory();
     });
 
     it('should match filenames with a RegExp', function() {
       let args;
 
-      traverseDir("/home/devebot", /\.js$/);
+      const MAPPING_DIR = ["", "home", "devebot", "example"].join(path.delimiter);
+      traverseDir(MAPPING_DIR, /\.js$/);
       args = traverseDirRecursively.getCall(0).args;
       const filter = args[2];
       // make sure the "filter" is a function
