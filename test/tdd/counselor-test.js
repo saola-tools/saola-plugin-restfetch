@@ -5,7 +5,7 @@ var lodash = devebot.require('lodash');
 var path = require('path');
 var assert = require('chai').assert;
 var sinon = require('sinon');
-var dtk = require(path.join(__dirname, '..', 'index'));
+var dtk = require('../index');
 
 describe('counselor', function() {
   describe('unifyHttpHeaderName()', function() {

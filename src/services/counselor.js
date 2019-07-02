@@ -124,7 +124,7 @@ function traverseDir(dir, filter, fileinfos) {
   }
   try {
     dir = path.normalize(dir);
-    if (dir && dir !== path.sep && dir.length > 1 && dir.endWith(path.sep)) {
+    if (dir && dir !== path.sep && dir.length > 1 && dir.endsWith(path.sep)) {
       dir = dir.substring(0, dir.length - 1);
     }
     return traverseDirRecursively(dir, dir, filter, fileinfos);
