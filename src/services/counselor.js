@@ -94,19 +94,27 @@ function requireMappingFile(mappingFile) {
 
 function traverseDir(dir, filter, fileinfos) {
   if (!lodash.isFunction(filter)) {
-    const exts = filter;
+    let exts = filter;
     if (exts != null) {
       if (lodash.isRegExp(exts)) {
         filter = function (fileinfo) {
-          return fileinfo != null && exts.test(fileinfo.ext);
-        }
-      } else if (lodash.isArray(exts)) {
-        filter = function (fileinfo) {
-          return fileinfo && exts.indexOf(fileinfo.ext) >= 0;
+          if (fileinfo == null) return true;
+          return exts.test(path.join(fileinfo.path, fileinfo.base));
         }
       } else {
+        if (!lodash.isArray(exts)) {
+          exts = [exts];
+        }
         filter = function (fileinfo) {
-          return fileinfo && fileinfo.ext == exts;
+          if (fileinfo == null) return true;
+          for(const i in exts) {
+            const ext = exts[i];
+            const filepath = path.join(fileinfo.path, fileinfo.base);
+            if (filepath.indexOf(ext.toString()) >= 0) {
+              return true;
+            }
+          }
+          return false;
         }
       }
     }

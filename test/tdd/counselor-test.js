@@ -152,7 +152,21 @@ describe('counselor', function() {
       traverseDirRecursively.resetHistory();
     });
 
-    it('should match filenames with a RegExp');
+    it('should match filenames with a RegExp', function() {
+      let args;
+
+      traverseDir("/home/devebot", /\.js$/);
+      args = traverseDirRecursively.getCall(0).args;
+      const filter = args[2];
+      assert.isFunction(filter);
+      assert.isTrue(filter({ path: "/mappings", base: "github-api.js" }));
+      assert.isFalse(filter({ path: "/mappings", base: "github-api.md" }));
+      assert.isFalse(filter({ path: "/mappings", base: "github.jsi.md" }));
+      assert.isFalse(filter({ path: "/mappings", base: "github-api.jsx" }));
+      assert.isFalse(filter({ path: "/mappings", base: "github-api_js" }));
+      assert.isFalse(filter({ path: "/.jszz.js", base: "github-api.md" }));
+      traverseDirRecursively.resetHistory();
+    });
 
     it('should match filenames with an array of extensions');
 
