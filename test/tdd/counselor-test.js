@@ -115,7 +115,7 @@ describe('counselor', function() {
     });
   });
 
-  describe('traverseDir()', function() {
+  describe('traverseDirRecursively()', function() {
     var loggingFactory = dtk.createLoggingFactoryMock({ captureMethodCall: false });
     var ctx = {
       L: loggingFactory.getLogger(),

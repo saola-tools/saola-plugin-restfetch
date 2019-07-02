@@ -38,7 +38,7 @@ function Counselor(params = {}) {
 
 module.exports = Counselor;
 
-function loadMappingStore(mappingPath, mappingName, keyGenerator) {
+function loadMappingStore(mappingPath, mappingName, keyGenerator, evaluated) {
   if (!lodash.isFunction(keyGenerator)) {
     keyGenerator = function(mappingName, fileInfo, fileBody) {
       return mappingName;
@@ -47,18 +47,14 @@ function loadMappingStore(mappingPath, mappingName, keyGenerator) {
   let mappings;
   const mappingStat = fs.statSync(mappingPath);
   if (mappingStat.isFile()) {
-    const mappingScript = requireMappingFile(mappingPath);
-    if (lodash.isFunction(mappingScript)) {
-      mappings = mappingScript(mappingName);
-    } else {
-      mappings = mappingScript;
-    }
+    mappings = evaluateMappingFile(mappingPath, mappingName, evaluated);
   }
   if (mappingStat.isDirectory()) {
     mappings = {};
     const fileinfos = traverseDir(mappingPath, mappingFileFilter);
     lodash.forEach(fileinfos, function(info) {
-      const fileBody = requireMappingFile(path.join(info.dir, info.base));
+      const mappingFile = path.join(info.dir, info.base);
+      const fileBody = evaluateMappingFile(mappingFile, mappingName, evaluated);
       const mappingId = keyGenerator(mappingName, info, fileBody);
       mappings[mappingId] = fileBody;
     });
@@ -76,6 +72,16 @@ function idGenerator(mappingName, fileinfo) {
 
 function mappingFileFilter(fileinfo) {
   return fileinfo.ext === '.js';
+}
+
+function evaluateMappingFile(mappingPath, mappingName, evaluated) {
+  const mappingBody = requireMappingFile(mappingPath);
+  if (lodash.isFunction(mappingBody) && evaluated !== false) {
+    try {
+      return mappingBody(mappingName);
+    } catch (err) {}
+  }
+  return mappingBody;
 }
 
 function requireMappingFile(mappingFile) {
