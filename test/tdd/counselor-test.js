@@ -5,7 +5,7 @@ var lodash = devebot.require('lodash');
 var path = require('path');
 var assert = require('chai').assert;
 var sinon = require('sinon');
-var dtk = require('../index');
+var dtk = require(path.join(__dirname, '..', 'index'));
 
 describe('counselor', function() {
   describe('unifyHttpHeaderName()', function() {
@@ -228,7 +228,7 @@ describe('counselor', function() {
         {
           "home": MAPPING_HOME_DIR,
           "path": "",
-          "dir": "/home/devebot/example/mappings",
+          "dir": MAPPING_HOME_DIR,
           "base": "github-api.js",
           "name": "github-api",
           "ext": ".js"
@@ -236,7 +236,7 @@ describe('counselor', function() {
         {
           "home": MAPPING_HOME_DIR,
           "path": "",
-          "dir": "/home/devebot/example/mappings",
+          "dir": MAPPING_HOME_DIR,
           "base": "gitlab-api.js",
           "name": "gitlab-api",
           "ext": ".js"

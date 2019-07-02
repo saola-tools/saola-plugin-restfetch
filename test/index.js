@@ -11,7 +11,7 @@ var sinon = require('sinon');
 function TestUtils() {
 
   this.acquire = function (modulePath) {
-    return rewire(path.join(__dirname, '../lib/services', modulePath));
+    return rewire(path.join(__dirname, '..', 'lib', 'services', modulePath));
   }
 
   this.get = function(rewiredModule, propName) {
