@@ -154,11 +154,11 @@ describe('counselor', function() {
       traverseDirRecursively.resetHistory();
     });
 
+    const MAPPING_DIR = ["", "home", "devebot", "example"].join(path.sep);
+    const RELATIVE_DIR = ["", "mappings"].join(path.sep);
+
     it('should match filenames with a RegExp', function() {
       let args;
-
-      const MAPPING_DIR = ["", "home", "devebot", "example"].join(path.sep);
-      const RELATIVE_DIR = ["", "mappings"].join(path.sep);
 
       traverseDir(MAPPING_DIR, /\.js$/);
       args = traverseDirRecursively.getCall(0).args;
@@ -166,6 +166,7 @@ describe('counselor', function() {
       // make sure the "filter" is a function
       assert.isFunction(filter);
       // assert that "filter" satisfied the provided regular expression
+      // case 1: { path: "/mappings", base: "github-api.js" }
       assert.isTrue(filter({ path: RELATIVE_DIR, base: "github-api.js" }));
       assert.isFalse(filter({ path: RELATIVE_DIR, base: "github-api.md" }));
       assert.isFalse(filter({ path: RELATIVE_DIR, base: "github.jsi.md" }));
@@ -175,9 +176,51 @@ describe('counselor', function() {
       traverseDirRecursively.resetHistory();
     });
 
-    it('should match filenames with an array of extensions');
+    it('should match filenames with an array of extensions', function() {
+      let args;
 
-    it('should match filenames with a string');
+      traverseDir(MAPPING_DIR, ["jsi", "jsx", "zz","JAR","json","html"]);
+      args = traverseDirRecursively.getCall(0).args;
+      const filter = args[2];
+
+      assert.isFalse(filter({ path: RELATIVE_DIR, base: "github-api.js" }));
+      assert.isFalse(filter({ path: RELATIVE_DIR, base: "github-api.md" }));
+      assert.isTrue(filter({ path: RELATIVE_DIR, base: "github.jsi.md" }));
+      assert.isTrue(filter({ path: RELATIVE_DIR, base: "github-api.jsx" }));
+      assert.isFalse(filter({ path: RELATIVE_DIR, base: "github-api_js" }));
+      assert.isTrue(filter({ path: RELATIVE_DIR, base: "github-api.json" }));
+      assert.isTrue(filter({ path: RELATIVE_DIR, base: "github-api.JAR" }));
+      assert.isFalse(filter({ path: RELATIVE_DIR, base: "github-api.exe" }));
+      assert.isTrue(filter({ path: RELATIVE_DIR, base: "github.json.exe" }));
+      assert.isFalse(filter({ path: RELATIVE_DIR, base: "github.png.exe" }));
+      assert.isFalse(filter({ path: RELATIVE_DIR, base: "github.txt.exe" }));
+      assert.isTrue(filter({ path: RELATIVE_DIR, base: "github.html.jsx" }));
+
+      // { path: "/.jszz.js", base: "github-api.md" } => relative-path: /.jszz.js/github-api.md
+      assert.isTrue(filter({ path: ["", ".txtmd.html"].join(path.sep), base: "github-api.png" }));
+      assert.isFalse(filter({ path: ["", ".png.exe"].join(path.sep), base: "github-api.js" }));
+      assert.isTrue(filter({ path: ["", ".txtzz.js"].join(path.sep), base: "github-api.jsx" }));
+      assert.isTrue(filter({ path: ["", ".JARpng.js"].join(path.sep), base: "github-api.txt" }));
+      assert.isFalse(filter({ path: ["", ".exemd.js"].join(path.sep), base: "github-api.md" }));
+      traverseDirRecursively.resetHistory();
+    });
+
+    it('should match filenames with a string', function() {
+      let args;
+
+      traverseDir(MAPPING_DIR, "mappings" + path.sep +"github");
+      args = traverseDirRecursively.getCall(0).args;
+      const filter = args[2];
+
+      assert.isFalse(filter({ path: RELATIVE_DIR, base: "gitlab-api.js" }));
+      assert.isTrue(filter({ path: RELATIVE_DIR, base: "github-api.md" }));
+      assert.isTrue(filter({ path: RELATIVE_DIR, base: "github.jsi.md" }));
+      assert.isFalse(filter({ path: RELATIVE_DIR, base: "gitlab.jsi.zz" }));
+      assert.isFalse(filter({ path: RELATIVE_DIR, base: "gitbranch-api.txt" }));
+      assert.isFalse(filter({ path: ["", ".pngexe.js"].join(path.sep), base: "gitlab-api.txt" }));
+      assert.isFalse(filter({ path: ["", ".jsxzz.js"].join(path.sep), base: "gitbranch-api.zz" }));
+      traverseDirRecursively.resetHistory();
+    });
   });
 
   describe('traverseDirRecursively()', function() {
@@ -430,8 +473,8 @@ describe('counselor', function() {
 
       var c = new Counselor(params);
 
-      //console.log("newMappings: %s", JSON.stringify(c.mappings, null, 2));
+      console.log("newMappings: %s", JSON.stringify(c.mappings, null, 2));
       assert.deepEqual(c.mappings, expected);
-    });
   });
+});
 });
