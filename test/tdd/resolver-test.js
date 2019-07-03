@@ -57,6 +57,7 @@ describe('resolver', function() {
     }
 
     var services = {};
+    var storage = {};
     var serviceName = "service_1";
     var serviceDescriptor = {};
 
@@ -73,6 +74,29 @@ describe('resolver', function() {
       var serviceDescriptor = { enabled: false };
       createService(ctx, services, serviceName, serviceDescriptor);
       assert.equal(registerMethod.callCount, 0);
+    });
+
+    it('registerMethod will be called to initialize every service descriptors', function() {
+      createService(ctx, services, serviceName, serviceDescriptor);
+      assert.equal(registerMethod.callCount, lodash.keys(serviceDescriptor).length);
+    });
+
+    it.only('registerMethodc will be passed the correct arguments with right order', function() {
+      var serviceDescriptor ={
+      methods : {
+          getUser:{
+
+        },
+          getUserID:{
+
+        },
+      }  
+    };
+
+    createService(ctx, services, serviceName, serviceDescriptor);
+    assert.equal(registerMethod.callCount, 2);
+    // assert.isTrue(registerMethod.getCall(0).calledWith(ctx, storage[serviceName] ,"service_1", serviceDescriptor.methods.getUser ));
+    // assert.isTrue(registerMethod.getCall(1).calledWith(ctx, storage[serviceName] ,"service_1", serviceDescriptor.methods.getUserID ))
     });
   });
 
