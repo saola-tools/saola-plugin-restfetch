@@ -20,7 +20,14 @@ module.exports = {
             "type": "object",
             "patternProperties": {
               "^.+$": {
-                "type": "string"
+                "oneOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "object"
+                  }
+                ]
               }
             },
             "additionalProperties": false

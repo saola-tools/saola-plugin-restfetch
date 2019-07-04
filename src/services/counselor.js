@@ -8,20 +8,21 @@ const fs = require('fs');
 const path = require('path');
 const traverse = require('traverse');
 
+const STANDARD_MAPPING_LOADER = chores.isVersionLTE && chores.getVersionOf &&
+    chores.isVersionLTE("0.3.1", chores.getVersionOf("devebot"));
+
 function Counselor(params = {}) {
   const pluginCfg = lodash.get(params, ['sandboxConfig'], {});
   const mappings = {};
 
-  let mappingStore = pluginCfg.mappingStore;
-  if (lodash.isString(mappingStore)) {
-    let store = {};
-    store['app-restfetch'] = mappingStore;
-    mappingStore = store;
-  }
-  if (lodash.isObject(mappingStore)) {
-    lodash.forOwn(mappingStore, function(path, name) {
-      lodash.merge(mappings, sanitizeHttpHeaders(loadMappingStore(path, name, idGenerator)));
+  if (STANDARD_MAPPING_LOADER) {
+    const mappingFromStore = params.mappingLoader.loadMappings(pluginCfg.mappingStore, {
+      fileFilter: mappingFileFilter,
+      keyGenerator: idGenerator,
     });
+    lodash.merge(mappings, sanitizeHttpHeaders(mappingFromStore));
+  } else {
+    lodash.merge(mappings, sanitizeHttpHeaders(loadMappings(pluginCfg.mappingStore)));
   }
 
   if (lodash.isObject(pluginCfg.mappings)) {
@@ -36,7 +37,30 @@ function Counselor(params = {}) {
   });
 }
 
+if (STANDARD_MAPPING_LOADER) {
+  Counselor.referenceHash = {
+    mappingLoader: 'devebot/mappingLoader'
+  };
+}
+
 module.exports = Counselor;
+
+// ----------------------------------------------------------------------------
+
+function loadMappings(mappingStore) {
+  const mappings = {};
+  if (lodash.isString(mappingStore)) {
+    let store = {};
+    store['app-restfetch'] = mappingStore;
+    mappingStore = store;
+  }
+  if (lodash.isObject(mappingStore)) {
+    lodash.forOwn(mappingStore, function(path, name) {
+      lodash.merge(mappings, loadMappingStore(path, name, idGenerator));
+    });
+  }
+  return mappings;
+}
 
 function loadMappingStore(mappingPath, mappingName, keyGenerator, evaluated) {
   if (!lodash.isFunction(keyGenerator)) {
@@ -157,6 +181,8 @@ function traverseDirRecursively(homeDir, dir, filter, fileinfos = []) {
   }
   return fileinfos;
 }
+
+// ----------------------------------------------------------------------------
 
 function sanitizeHttpHeaders(mappings) {
   mappings = traverse(mappings).map(function (x) {
