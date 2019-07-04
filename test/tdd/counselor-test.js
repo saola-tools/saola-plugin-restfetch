@@ -473,7 +473,7 @@ describe('counselor', function() {
 
       var c = new Counselor(params);
 
-      console.log("newMappings: %s", JSON.stringify(c.mappings, null, 2));
+      false && console.log("newMappings: %s", JSON.stringify(c.mappings, null, 2));
       assert.deepEqual(c.mappings, expected);
   });
 });

@@ -57,7 +57,6 @@ describe('resolver', function() {
     }
 
     var services = {};
-    var storage = {};
     var serviceName = "service_1";
     var serviceDescriptor = {};
 
@@ -76,27 +75,23 @@ describe('resolver', function() {
       assert.equal(registerMethod.callCount, 0);
     });
 
-    it('registerMethod will be called to initialize every service descriptors', function() {
+    it('registerMethod will be passed the correct arguments with right order', function() {
+      var serviceName = 'myService';
+      var serviceDescriptor = {
+        methods: {
+          getUser: {
+            note: 'This is the method#1'
+          },
+          getUserID: {
+            note: 'This is the method#2'
+          },
+        }
+      };
+
       createService(ctx, services, serviceName, serviceDescriptor);
-      assert.equal(registerMethod.callCount, lodash.keys(serviceDescriptor).length);
-    });
-
-    it.only('registerMethodc will be passed the correct arguments with right order', function() {
-      var serviceDescriptor ={
-      methods : {
-          getUser:{
-
-        },
-          getUserID:{
-
-        },
-      }  
-    };
-
-    createService(ctx, services, serviceName, serviceDescriptor);
-    assert.equal(registerMethod.callCount, 2);
-    // assert.isTrue(registerMethod.getCall(0).calledWith(ctx, storage[serviceName] ,"service_1", serviceDescriptor.methods.getUser ));
-    // assert.isTrue(registerMethod.getCall(1).calledWith(ctx, storage[serviceName] ,"service_1", serviceDescriptor.methods.getUserID ))
+      assert.equal(registerMethod.callCount, 2);
+      assert.isTrue(registerMethod.getCall(0).calledWith(ctx, services[serviceName], 'getUser', serviceDescriptor.methods.getUser ));
+      assert.isTrue(registerMethod.getCall(1).calledWith(ctx, services[serviceName], 'getUserID', serviceDescriptor.methods.getUserID ));
     });
   });
 
