@@ -8,14 +8,14 @@ const fs = require('fs');
 const path = require('path');
 const traverse = require('traverse');
 
-const STANDARD_MAPPING_LOADER = chores.isVersionLTE && chores.getVersionOf &&
+const BUILTIN_MAPPING_LOADER = chores.isVersionLTE && chores.getVersionOf &&
     chores.isVersionLTE("0.3.1", chores.getVersionOf("devebot"));
 
 function Counselor(params = {}) {
   const pluginCfg = lodash.get(params, ['sandboxConfig'], {});
   const mappings = {};
 
-  if (STANDARD_MAPPING_LOADER) {
+  if (BUILTIN_MAPPING_LOADER) {
     const mappingFromStore = params.mappingLoader.loadMappings(pluginCfg.mappingStore, {
       fileFilter: mappingFileFilter,
       keyGenerator: idGenerator,
@@ -37,7 +37,7 @@ function Counselor(params = {}) {
   });
 }
 
-if (STANDARD_MAPPING_LOADER) {
+if (BUILTIN_MAPPING_LOADER) {
   Counselor.referenceHash = {
     mappingLoader: 'devebot/mappingLoader'
   };
@@ -69,7 +69,17 @@ function loadMappingStore(mappingPath, mappingName, keyGenerator, evaluated) {
     }
   }
   let mappings;
-  const mappingStat = fs.statSync(mappingPath);
+  let mappingStat;
+  try {
+    mappingStat = fs.statSync(mappingPath);
+  } catch (err) {
+    mappingPath = mappingPath + '.js';
+    try {
+      mappingStat = fs.statSync(mappingPath);
+    } catch (e__) {
+      throw err;
+    }
+  }
   if (mappingStat.isFile()) {
     mappings = evaluateMappingFile(mappingPath, mappingName, evaluated);
   }
