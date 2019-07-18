@@ -4,16 +4,15 @@ var devebot = require('devebot');
 var lodash = devebot.require('lodash');
 var path = require('path');
 var assert = require('chai').assert;
-var sinon = require('sinon');
-var dtk = require('../index');
+var mockit = require('liberica').mockit;
 
 describe('counselor', function() {
   describe('unifyHttpHeaderName()', function() {
     var Counselor, unifyHttpHeaderName;
 
     beforeEach(function() {
-      Counselor = dtk.acquire('counselor');
-      unifyHttpHeaderName = dtk.get(Counselor, 'unifyHttpHeaderName');
+      Counselor = mockit.acquire('counselor');
+      unifyHttpHeaderName = mockit.get(Counselor, 'unifyHttpHeaderName');
     });
 
     it('unifyHttpHeaderName() will unify the names of HttpHeaders correctly', function() {
@@ -28,7 +27,7 @@ describe('counselor', function() {
 
   describe('sanitizeHttpHeaders()', function() {
     var Counselor, sanitizeHttpHeaders;
-    var loggingFactory = dtk.createLoggingFactoryMock({ captureMethodCall: false });
+    var loggingFactory = mockit.createLoggingFactoryMock({ captureMethodCall: false });
     var ctx = {
       L: loggingFactory.getLogger(),
       T: loggingFactory.getTracer(),
@@ -36,8 +35,8 @@ describe('counselor', function() {
     }
 
     beforeEach(function() {
-      Counselor = dtk.acquire('counselor');
-      sanitizeHttpHeaders = dtk.get(Counselor, 'sanitizeHttpHeaders');
+      Counselor = mockit.acquire('counselor');
+      sanitizeHttpHeaders = mockit.get(Counselor, 'sanitizeHttpHeaders');
     });
 
     var mappings = {
@@ -119,9 +118,9 @@ describe('counselor', function() {
     var Counselor, traverseDir, traverseDirRecursively;
 
     beforeEach(function() {
-      Counselor = dtk.acquire('counselor');
-      traverseDir = dtk.get(Counselor, 'traverseDir');
-      traverseDirRecursively = dtk.spy(Counselor, 'traverseDirRecursively');
+      Counselor = mockit.acquire('counselor');
+      traverseDir = mockit.get(Counselor, 'traverseDir');
+      traverseDirRecursively = mockit.spy(Counselor, 'traverseDirRecursively');
     });
 
     it('should standardize the directory path', function() {
@@ -224,7 +223,7 @@ describe('counselor', function() {
   });
 
   describe('traverseDirRecursively()', function() {
-    var loggingFactory = dtk.createLoggingFactoryMock({ captureMethodCall: false });
+    var loggingFactory = mockit.createLoggingFactoryMock({ captureMethodCall: false });
     var ctx = {
       L: loggingFactory.getLogger(),
       T: loggingFactory.getTracer(),
@@ -248,13 +247,9 @@ describe('counselor', function() {
     var Counselor, traverseDirRecursively, fs;
 
     beforeEach(function() {
-      Counselor = dtk.acquire('counselor');
-      traverseDirRecursively = dtk.get(Counselor, 'traverseDirRecursively');
-      fs = {
-        readdirSync: sinon.stub(),
-        statSync: sinon.stub()
-      };
-      dtk.set(Counselor, 'fs', fs);
+      Counselor = mockit.acquire('counselor');
+      traverseDirRecursively = mockit.get(Counselor, 'traverseDirRecursively');
+      fs = mockit.stubObject(Counselor, 'fs', ['readdirSync', 'statSync']);
     });
 
     it('get all of names of filtered files in a directory', function() {
@@ -345,7 +340,7 @@ describe('counselor', function() {
   });
 
   describe('loadMappingStore()', function() {
-    var loggingFactory = dtk.createLoggingFactoryMock({ captureMethodCall: false });
+    var loggingFactory = mockit.createLoggingFactoryMock({ captureMethodCall: false });
     var ctx = {
       L: loggingFactory.getLogger(),
       T: loggingFactory.getTracer(),
@@ -355,18 +350,15 @@ describe('counselor', function() {
     var Counselor, loadMappingStore, fs;
 
     beforeEach(function() {
-      Counselor = dtk.acquire('counselor');
-      loadMappingStore = dtk.get(Counselor, 'loadMappingStore');
-      fs = {
-        statSync: sinon.stub()
-      };
-      dtk.set(Counselor, 'fs', fs);
+      Counselor = mockit.acquire('counselor');
+      loadMappingStore = mockit.get(Counselor, 'loadMappingStore');
+      fs = mockit.set(Counselor, 'fs', ['statSync']);
     });
   });
 
   describe('Counselor() constructor', function() {
     var Counselor, loadMappingStore;
-    var loggingFactory = dtk.createLoggingFactoryMock({ captureMethodCall: false });
+    var loggingFactory = mockit.createLoggingFactoryMock({ captureMethodCall: false });
     var ctx = {
       L: loggingFactory.getLogger(),
       T: loggingFactory.getTracer(),
@@ -455,10 +447,9 @@ describe('counselor', function() {
     }
 
     beforeEach(function() {
-      Counselor = dtk.acquire('counselor');
-      loadMappingStore = sinon.stub();
+      Counselor = mockit.acquire('counselor');
+      loadMappingStore = mockit.stub(Counselor, 'loadMappingStore');
       loadMappingStore.onFirstCall().returns(mockMappings);
-      dtk.set(Counselor, 'loadMappingStore', loadMappingStore);
     });
 
     it('Counselor will merge mappings properly', function() {

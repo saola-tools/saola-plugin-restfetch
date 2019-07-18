@@ -97,6 +97,9 @@ function loadMappingStore(mappingPath, mappingName, keyGenerator, evaluated) {
 }
 
 function idGenerator(mappingName, fileinfo) {
+  if (fileinfo.homeDir == null) {
+    return null;
+  }
   let serviceName = chores.stringCamelCase(fileinfo.name);
   if (lodash.isString(mappingName) && mappingName.length > 0) {
     serviceName = mappingName + '/' + serviceName;

@@ -3,8 +3,7 @@
 var devebot = require('devebot');
 var lodash = devebot.require('lodash');
 var assert = require('chai').assert;
-var sinon = require('sinon');
-var dtk = require('../index');
+var dtk = require('liberica').mockit;
 
 describe('resolver', function() {
   describe('init()', function() {
@@ -26,8 +25,7 @@ describe('resolver', function() {
     beforeEach(function() {
       Resolver = dtk.acquire('resolver');
       init = dtk.get(Resolver, 'init');
-      createService = sinon.stub();
-      dtk.set(Resolver, 'createService', createService);
+      createService = dtk.stub(Resolver, 'createService');
     });
 
     it('createService will not be called if enabled ~ false', function() {
@@ -65,8 +63,7 @@ describe('resolver', function() {
     beforeEach(function() {
       Resolver = dtk.acquire('resolver');
       createService = dtk.get(Resolver, 'createService');
-      registerMethod = sinon.stub();
-      dtk.set(Resolver, 'registerMethod', registerMethod);
+      registerMethod = dtk.stub(Resolver, 'registerMethod');
     });
 
     it('registerMethod will not be called if serviceDescriptor.enabled ~ false', function() {
