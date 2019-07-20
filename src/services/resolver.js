@@ -9,6 +9,7 @@ const validator = new schemato.Validator({ schemaVersion: 4 });
 const valvekit = require('valvekit');
 const pathToRegexp = require('path-to-regexp');
 const fetch = require('node-fetch');
+const url = require('url');
 
 fetch.Promise = Bluebird;
 
@@ -71,10 +72,10 @@ function createService(ctx, storage, serviceName, serviceDescriptor) {
   storage[serviceName] = storage[serviceName] || {};
   L.has('debug') && L.log('debug', T.add({
     enabled: serviceDescriptor.enabled !== false,
-    name: serviceName
+    serviceName: serviceName
   }).toMessage({
     tags: [ blockRef, 'register-service' ],
-    text: ' - Initialize the service[${name}], enabled: ${enabled}'
+    text: ' - Initialize the service[${serviceName}], enabled: ${enabled}'
   }));
   if (serviceDescriptor.enabled !== false) {
     const methodContext = lodash.get(serviceDescriptor, ["arguments", "default"], {});
@@ -133,10 +134,10 @@ function registerMethod(ctx, target, methodName, methodDescriptor, methodContext
             return Bluebird.reject(FA.error);
           } else {
             L.has('debug') && L.log('debug', T.add({
-              requestId, ticketId, methodName, url: FA.url
+              requestId, ticketId, methodName, url: FA.url, headers: FA.args.headers, body: FA.args.body
             }).toMessage({
               tags: [ blockRef, 'method-rest' ],
-              text: '[${requestId}] Method[${methodName}] is bound to URL[${url}]'
+              text: '[${requestId}] Method[${methodName}] is bound to url [${url}], headers: ${headers}, body: ${body}'
             }));
           }
 
@@ -193,35 +194,48 @@ function buildFetchArgs(context = {}, descriptor = {}, methodArgs = {}) {
     lodash.pick(methodArgs, FETCH_ARGS_FIELDS));
   const args = {
     method: descriptor.method,
-    headers: opts.headers
+    headers: opts.headers || {}
   }
   if (!lodash.isString(args.method)) {
     return { error: new Error('invalid-http-method') }
   }
+
   if (methodArgs.body != null) {
-    args.body = methodArgs.body;
+    if (lodash.isObject(methodArgs.body)) {
+      if (!args.headers['Content-Type']) {
+        args.headers['Content-Type'] = 'application/json';
+      }
+      args.body = JSON.stringify(methodArgs.body);
+    } else if (lodash.isString(methodArgs.body)) {
+      args.body = methodArgs.body;
+    }
   }
 
-  let url = descriptor.url;
-  if (!lodash.isString(url) || url.length == 0) {
+  let urlString = descriptor.url;
+  if (!lodash.isString(urlString) || urlString.length == 0) {
     return { error: new Error('invalid-http-url') }
   }
-  if (!descriptor.urlRegexp) {
-    descriptor.urlRegexp = pathToRegexp.compile(url);
+
+  let urlObj = url.parse(urlString);
+
+  if (!descriptor.pathnameRegexp) {
+    descriptor.pathnameRegexp = pathToRegexp.compile(urlObj.pathname);
   }
-  const urlRegexp = descriptor.urlRegexp;
   try {
-    url = urlRegexp(opts.params);
+    urlObj.pathname = descriptor.pathnameRegexp(opts.params);
   } catch (error) {
     return { error: error }
   }
+
+  urlString = url.format(urlObj);
+
   if (lodash.isObject(opts.query) && !lodash.isEmpty(opts.query)) {
-    url = url + '?' + getQueryString(opts.query);
+    urlString = urlString + '?' + getQueryString(opts.query);
   }
 
   let timeout = descriptor.timeout;
 
-  return { url, args, timeout };
+  return { url: urlString, args, timeout };
 }
 
 function getQueryString(params) {

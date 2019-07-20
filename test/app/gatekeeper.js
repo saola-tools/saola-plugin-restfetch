@@ -11,8 +11,13 @@ var main = require('devebot').launchApplication({
 
 var resolver = main.runner.getSandboxService('app-restfetch/resolver');
 
-var smsnhanh = resolver.lookupService("restfetch-example/smsnhanh");
+var gatekeeper = resolver.lookupService("restfetch-example/gatekeeper");
 
-smsnhanh.sendSMS('+84973407139', 'Ban vua trung so doc dac 2').then(function(output) {
+gatekeeper.updateUser({
+  "appType":"agent",
+  "phoneNumber":"+84987654321",
+  "firstName":"Tran",
+  "lastName":"Trung Truc"
+}).then(function(output) {
   console.log(JSON.stringify(output, null, 2));
 })

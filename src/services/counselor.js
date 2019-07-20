@@ -96,21 +96,6 @@ function loadMappingStore(mappingPath, mappingName, keyGenerator, evaluated) {
   return mappings;
 }
 
-function idGenerator(mappingName, fileinfo) {
-  if (fileinfo.homeDir == null) {
-    return null;
-  }
-  let serviceName = chores.stringCamelCase(fileinfo.name);
-  if (lodash.isString(mappingName) && mappingName.length > 0) {
-    serviceName = mappingName + '/' + serviceName;
-  }
-  return serviceName;
-}
-
-function mappingFileFilter(fileinfo) {
-  return fileinfo.ext === '.js';
-}
-
 function evaluateMappingFile(mappingPath, mappingName, evaluated) {
   const mappingBody = requireMappingFile(mappingPath);
   if (lodash.isFunction(mappingBody) && evaluated !== false) {
@@ -196,6 +181,21 @@ function traverseDirRecursively(homeDir, dir, filter, fileinfos = []) {
 }
 
 // ----------------------------------------------------------------------------
+
+function idGenerator(mappingName, fileinfo) {
+  if (BUILTIN_MAPPING_LOADER && fileinfo.standalone) {
+    return null;
+  }
+  let serviceName = chores.stringCamelCase(fileinfo.name);
+  if (lodash.isString(mappingName) && mappingName.length > 0) {
+    serviceName = mappingName + '/' + serviceName;
+  }
+  return serviceName;
+}
+
+function mappingFileFilter(fileinfo) {
+  return fileinfo.ext === '.js';
+}
 
 function sanitizeHttpHeaders(mappings) {
   mappings = traverse(mappings).map(function (x) {

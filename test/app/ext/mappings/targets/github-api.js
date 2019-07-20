@@ -3,7 +3,7 @@ module.exports = {
   methods: {
     getListBranches: {
       method: "GET",
-      url: "https://api.github.com/repos/:owner/:repoId/branches",
+      url: "https://api.github.com:443/repos/:owner/:repoId/branches",
       arguments: {
         transform: function(owner, projectId) {
           var p = {};
@@ -19,7 +19,7 @@ module.exports = {
     },
     getProjectInfo: {
       method: "GET",
-      url: "https://api.github.com/repos/:userOrOrgan/:projectId",
+      url: "https://api.github.com:443/repos/:userOrOrgan/:projectId",
       arguments: {
         default: {
           params: {
