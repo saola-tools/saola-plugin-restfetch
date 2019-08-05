@@ -166,10 +166,10 @@ function registerMethod(ctx, target, methodName, methodDescriptor, methodContext
           // error processing
           p = p.catch(function (err) {
             L.has('warn') && L.log('warn', T.add({
-              requestId, ticketId, methodName
+              requestId, ticketId, methodName, eName: err.name, eMessage: err.message
             }).toMessage({
               tags: [ blockRef, 'method-rest' ],
-              text: '[${requestId}] Method[${methodName}] has failed'
+              text: '[${requestId}] Method[${methodName}] has failed, error[${eName}]: ${eMessage}'
             }));
             return Bluebird.reject(F.transformException(err));
           });
