@@ -24,25 +24,22 @@ function Service(params = {}) {
   const mappings = params.counselor.mappings;
   const injektor = new Injektor(chores.injektorOptions);
   const services = {};
+  const ctx = { L, T, blockRef, injektor };
 
-  let ticketDeliveryDelay = pluginCfg.ticketDeliveryDelay || null;
-  if (!(lodash.isInteger(ticketDeliveryDelay) && ticketDeliveryDelay > 0)) {
-    ticketDeliveryDelay = null;
+  ctx.ticketDeliveryDelay = pluginCfg.ticketDeliveryDelay || null;
+  if (!(lodash.isInteger(ctx.ticketDeliveryDelay) && ctx.ticketDeliveryDelay > 0)) {
+    ctx.ticketDeliveryDelay = null;
   }
 
-  let throughputValve = null;
+  ctx.throughputValve = null;
   if (lodash.isInteger(pluginCfg.throughputQuota) && pluginCfg.throughputQuota > 0) {
     L.has('debug') && L.log('debug', T.add({
       throughputQuota: pluginCfg.throughputQuota
     }).toMessage({
-      tags: [ blockRef, 'quota-ticket' ],
+      tags: [ 'quota-ticket' ],
       text: ' - Create throughput valve: ${throughputQuota}'
     }));
-    throughputValve = valvekit.createSemaphore(pluginCfg.throughputQuota);
-  }
-
-  const ctx = {
-    L, T, blockRef, injektor, throughputValve, ticketDeliveryDelay
+    ctx.throughputValve = valvekit.createSemaphore(pluginCfg.throughputQuota);
   }
 
   this.lookupService = function(serviceName) {
