@@ -2,6 +2,7 @@
 
 const Devebot = require('devebot');
 const Bluebird = Devebot.require('bluebird');
+const Injektor = Devebot.require('injektor');
 const chores = Devebot.require('chores');
 const lodash = Devebot.require('lodash');
 const schemato = Devebot.require('schemato');
@@ -21,6 +22,7 @@ function Service(params = {}) {
 
   const pluginCfg = lodash.get(params, ['sandboxConfig'], {});
   const mappings = params.counselor.mappings;
+  const injektor = new Injektor(chores.injektorOptions);
   const services = {};
 
   let ticketDeliveryDelay = pluginCfg.ticketDeliveryDelay || null;
@@ -40,7 +42,7 @@ function Service(params = {}) {
   }
 
   const ctx = {
-    L, T, blockRef, throughputValve, ticketDeliveryDelay
+    L, T, blockRef, injektor, throughputValve, ticketDeliveryDelay
   }
 
   this.lookupService = function(serviceName) {

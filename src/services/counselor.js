@@ -129,7 +129,7 @@ function traverseDir(dir, filter, fileinfos) {
         }
         filter = function (fileinfo) {
           if (fileinfo == null) return true;
-          for(const i in exts) {
+          for (const i in exts) {
             const ext = exts[i];
             const filepath = path.join(fileinfo.path, fileinfo.base);
             if (filepath.indexOf(ext.toString()) >= 0) {
