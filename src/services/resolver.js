@@ -26,8 +26,6 @@ function Service(params = {}) {
   const services = {};
   const ctx = { L, T, blockRef, injektor };
 
-  applyThroughput(ctx, ctx, pluginCfg);
-
   init(ctx, services, mappings, pluginCfg.enabled !== false);
 
   this.lookupService = function(serviceName) {
@@ -39,22 +37,23 @@ Service.referenceList = [ 'counselor' ];
 
 module.exports = Service;
 
-function applyThroughput (ctx, box, pluginCfg) {
+function applyThroughput (ctx, descriptor = {}, box = {}) {
   const { L, T, blockRef } = ctx;
-  box.ticketDeliveryDelay = pluginCfg.ticketDeliveryDelay || null;
+  box.ticketDeliveryDelay = descriptor.ticketDeliveryDelay || null;
   if (!(lodash.isInteger(box.ticketDeliveryDelay) && box.ticketDeliveryDelay > 0)) {
     box.ticketDeliveryDelay = null;
   }
   box.throughputValve = null;
-  if (lodash.isInteger(pluginCfg.throughputQuota) && pluginCfg.throughputQuota > 0) {
+  if (lodash.isInteger(descriptor.throughputQuota) && descriptor.throughputQuota > 0) {
     L.has('debug') && L.log('debug', T.add({
-      throughputQuota: pluginCfg.throughputQuota
+      throughputQuota: descriptor.throughputQuota
     }).toMessage({
       tags: [ blockRef, 'quota-ticket' ],
       text: ' - Create throughput valve: ${throughputQuota}'
     }));
-    box.throughputValve = valvekit.createSemaphore(pluginCfg.throughputQuota);
+    box.throughputValve = valvekit.createSemaphore(descriptor.throughputQuota);
   }
+  return box;
 }
 
 function init(ctx, services, mappings, enabled) {
@@ -92,6 +91,7 @@ function createService(ctx, storage, serviceName, serviceDescriptor) {
 
 function registerMethod(ctx, target, methodName, methodDescriptor, methodContext) {
   const { L, T, blockRef } = ctx;
+  const box = applyThroughput(ctx, methodDescriptor);
 
   target = target || {};
   methodDescriptor = methodDescriptor || {};
@@ -117,7 +117,7 @@ function registerMethod(ctx, target, methodName, methodDescriptor, methodContext
         if (!vResult.ok) {
           return Bluebird.reject(new Error(JSON.stringify(vResult.errors)));
         }
-        return getTicket(ctx, ctx).then(function(ticketId) {
+        return getTicket(ctx, box).then(function(ticketId) {
           const requestId = methodArgs.requestId = methodArgs.requestId || T.getLogID();
           L.has('info') && L.log('info', T.add({
             requestId, ticketId, methodName, methodArgs
@@ -176,7 +176,7 @@ function registerMethod(ctx, target, methodName, methodDescriptor, methodContext
 
           // finally
           p = p.finally(function() {
-            releaseTicket(ctx, ctx, ticketId);
+            releaseTicket(ctx, box, ticketId);
           });
 
           return p;

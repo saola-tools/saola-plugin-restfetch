@@ -4,6 +4,8 @@ module.exports = {
     getListBranches: {
       method: "GET",
       url: "https://api.github.com:443/repos/:owner/:repoId/branches",
+      throughputQuota: 1,
+      ticketDeliveryDelay: 2000,
       arguments: {
         transform: function(owner, projectId) {
           var p = {};
