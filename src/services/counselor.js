@@ -12,21 +12,21 @@ const BUILTIN_MAPPING_LOADER = chores.isVersionLTE && chores.getVersionOf &&
     chores.isVersionLTE("0.3.1", chores.getVersionOf("devebot"));
 
 function Counselor(params = {}) {
-  const pluginCfg = lodash.get(params, ['sandboxConfig'], {});
+  const { sandboxConfig, mappingLoader } = params;
   const mappings = {};
 
   if (BUILTIN_MAPPING_LOADER) {
-    const mappingFromStore = params.mappingLoader.loadMappings(pluginCfg.mappingStore, {
+    const mappingFromStore = mappingLoader.loadMappings(sandboxConfig.mappingStore, {
       fileFilter: mappingFileFilter,
       keyGenerator: idGenerator,
     });
     lodash.merge(mappings, sanitizeHttpHeaders(mappingFromStore));
   } else {
-    lodash.merge(mappings, sanitizeHttpHeaders(loadMappings(pluginCfg.mappingStore)));
+    lodash.merge(mappings, sanitizeHttpHeaders(loadMappings(sandboxConfig.mappingStore)));
   }
 
-  if (lodash.isObject(pluginCfg.mappings)) {
-    lodash.merge(mappings, sanitizeHttpHeaders(pluginCfg.mappings));
+  if (lodash.isObject(sandboxConfig.mappings)) {
+    lodash.merge(mappings, sanitizeHttpHeaders(sandboxConfig.mappings));
   }
 
   Object.defineProperty(this, 'mappings', {
