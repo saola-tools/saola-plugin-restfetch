@@ -162,6 +162,9 @@ describe('resolver', function() {
       var fa = buildFetchArgs(context, descriptor, methodArgs);
       assert.isUndefined(fa.error);
       assert.equal(fa.url, 'https://api.github.com/repos/apporo/app-restfetch?accessToken=1234567890');
+      if (lodash.isString(fa.args.body)) {
+        fa.args.body = JSON.parse(fa.args.body);
+      }
       assert.deepEqual(fa.args, {
         method: 'GET',
         headers: {
@@ -204,6 +207,7 @@ describe('resolver', function() {
       T: loggingFactory.getTracer(),
       blockRef: 'app-restfetch',
     }
+    var box = {};
 
     var Resolver = dtk.acquire('resolver');
     var getTicket = dtk.get(Resolver, 'getTicket');

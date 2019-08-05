@@ -26,32 +26,36 @@ function Service(params = {}) {
   const services = {};
   const ctx = { L, T, blockRef, injektor };
 
-  ctx.ticketDeliveryDelay = pluginCfg.ticketDeliveryDelay || null;
-  if (!(lodash.isInteger(ctx.ticketDeliveryDelay) && ctx.ticketDeliveryDelay > 0)) {
-    ctx.ticketDeliveryDelay = null;
-  }
+  applyThroughput(ctx, ctx, pluginCfg);
 
-  ctx.throughputValve = null;
-  if (lodash.isInteger(pluginCfg.throughputQuota) && pluginCfg.throughputQuota > 0) {
-    L.has('debug') && L.log('debug', T.add({
-      throughputQuota: pluginCfg.throughputQuota
-    }).toMessage({
-      tags: [ 'quota-ticket' ],
-      text: ' - Create throughput valve: ${throughputQuota}'
-    }));
-    ctx.throughputValve = valvekit.createSemaphore(pluginCfg.throughputQuota);
-  }
+  init(ctx, services, mappings, pluginCfg.enabled !== false);
 
   this.lookupService = function(serviceName) {
     return services[serviceName];
   }
-
-  init(ctx, services, mappings, pluginCfg.enabled !== false);
 };
 
 Service.referenceList = [ 'counselor' ];
 
 module.exports = Service;
+
+function applyThroughput (ctx, box, pluginCfg) {
+  const { L, T, blockRef } = ctx;
+  box.ticketDeliveryDelay = pluginCfg.ticketDeliveryDelay || null;
+  if (!(lodash.isInteger(box.ticketDeliveryDelay) && box.ticketDeliveryDelay > 0)) {
+    box.ticketDeliveryDelay = null;
+  }
+  box.throughputValve = null;
+  if (lodash.isInteger(pluginCfg.throughputQuota) && pluginCfg.throughputQuota > 0) {
+    L.has('debug') && L.log('debug', T.add({
+      throughputQuota: pluginCfg.throughputQuota
+    }).toMessage({
+      tags: [ blockRef, 'quota-ticket' ],
+      text: ' - Create throughput valve: ${throughputQuota}'
+    }));
+    box.throughputValve = valvekit.createSemaphore(pluginCfg.throughputQuota);
+  }
+}
 
 function init(ctx, services, mappings, enabled) {
   const { L, T, blockRef } = ctx;
@@ -113,7 +117,7 @@ function registerMethod(ctx, target, methodName, methodDescriptor, methodContext
         if (!vResult.ok) {
           return Bluebird.reject(new Error(JSON.stringify(vResult.errors)));
         }
-        return getTicket(ctx).then(function(ticketId) {
+        return getTicket(ctx, ctx).then(function(ticketId) {
           const requestId = methodArgs.requestId = methodArgs.requestId || T.getLogID();
           L.has('info') && L.log('info', T.add({
             requestId, ticketId, methodName, methodArgs
@@ -172,7 +176,7 @@ function registerMethod(ctx, target, methodName, methodDescriptor, methodContext
 
           // finally
           p = p.finally(function() {
-            releaseTicket(ctx, ticketId);
+            releaseTicket(ctx, ctx, ticketId);
           });
 
           return p;
@@ -344,8 +348,9 @@ function validateMethodArgs(object) {
   return validator.validate(object, SCHEMA_METHOD_ARGS);
 }
 
-function getTicket(ctx) {
-  const { L, T, blockRef, throughputValve, ticketDeliveryDelay } = ctx;
+function getTicket(ctx, box = {}) {
+  const { L, T, blockRef } = ctx;
+  const { throughputValve, ticketDeliveryDelay } = box;
   let ticketId = T.getLogID();
   let ticket;
   if (throughputValve) {
@@ -369,8 +374,9 @@ function getTicket(ctx) {
   return ticketDeliveryDelay ? ticket.delay(ticketDeliveryDelay) : ticket;
 }
 
-function releaseTicket(ctx, ticketId) {
-  const { L, T, blockRef, throughputValve } = ctx;
+function releaseTicket(ctx, box = {}, ticketId) {
+  const { L, T, blockRef } = ctx;
+  const { throughputValve } = box;
   if (throughputValve) {
     throughputValve.release();
     L.has('debug') && L.log('debug', T.add({
