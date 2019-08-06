@@ -111,12 +111,13 @@ function registerMethod(ctx, target, methodName, methodDescriptor, methodContext
   Object.defineProperty(target, methodName, {
     get: function() {
       return function() {
+        const _arguments = arguments;
         let ticketId;
         let ticket = getTicket(ctx, box).then(function(_ticketId) {
           ticketId = _ticketId;
 
           // transform and validate the methodArgs
-          const methodArgs = F.transformArguments(...arguments);
+          const methodArgs = F.transformArguments(..._arguments);
           const vResult = validateMethodArgs(methodArgs);
           if (!vResult.ok) {
             return Bluebird.reject(new Error(JSON.stringify(vResult.errors)));
