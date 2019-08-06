@@ -49,7 +49,7 @@ function applyThroughput (ctx, descriptor = {}, box = {}) {
       throughputQuota: descriptor.throughputQuota
     }).toMessage({
       tags: [ blockRef, 'quota-ticket' ],
-      text: ' - Create throughput valve: ${throughputQuota}'
+      text: ' - Create throughput valve with the limit: ${throughputQuota}'
     }));
     box.throughputValve = valvekit.createSemaphore(descriptor.throughputQuota);
   }
@@ -111,13 +111,17 @@ function registerMethod(ctx, target, methodName, methodDescriptor, methodContext
   Object.defineProperty(target, methodName, {
     get: function() {
       return function() {
-        const methodArgs = F.transformArguments(...arguments);
-        // validate the methodArgs
-        const vResult = validateMethodArgs(methodArgs);
-        if (!vResult.ok) {
-          return Bluebird.reject(new Error(JSON.stringify(vResult.errors)));
-        }
-        return getTicket(ctx, box).then(function(ticketId) {
+        let ticketId;
+        let ticket = getTicket(ctx, box).then(function(_ticketId) {
+          ticketId = _ticketId;
+
+          // transform and validate the methodArgs
+          const methodArgs = F.transformArguments(...arguments);
+          const vResult = validateMethodArgs(methodArgs);
+          if (!vResult.ok) {
+            return Bluebird.reject(new Error(JSON.stringify(vResult.errors)));
+          }
+
           const requestId = methodArgs.requestId = methodArgs.requestId || T.getLogID();
           L.has('info') && L.log('info', T.add({
             requestId, ticketId, methodName, methodArgs
@@ -174,13 +178,14 @@ function registerMethod(ctx, target, methodName, methodDescriptor, methodContext
             return Bluebird.reject(F.transformException(err));
           });
 
-          // finally
-          p = p.finally(function() {
-            releaseTicket(ctx, box, ticketId);
-          });
-
           return p;
         });
+
+        ticket.finally(function() {
+          releaseTicket(ctx, box, ticketId);
+        });
+
+        return ticket;
       }
     },
     set: function(val) {}

@@ -5,5 +5,7 @@
 ### Run
 
 ```shell
-$ DEBUG=devebot*,app* node test/app
+export DEBUG=devebot*,app*
+export LOGOLITE_DEBUGLOG_ENABLED=true
+node test/app
 ```
