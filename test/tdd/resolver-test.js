@@ -92,6 +92,85 @@ describe('resolver', function() {
     });
   });
 
+  describe('registerMethod()', function() {
+    var loggingFactory = dtk.createLoggingFactoryMock({ captureMethodCall: false });
+    var ctx = {
+      L: loggingFactory.getLogger(),
+      T: loggingFactory.getTracer(),
+      blockRef: 'app-restfetch',
+    }
+
+    var Resolver = dtk.acquire('resolver');
+    var registerMethod = dtk.get(Resolver, 'registerMethod');
+    var fetch = null;
+
+    var target = {};
+    var methodName = 'sendMail';
+    var methodDescriptor = {};
+    var methodContext = {};
+
+    beforeEach(function() {
+      fetch = dtk.stub(Resolver, 'fetch');
+    });
+
+    it('skip register method if the methodDescriptor.enabled is false');
+
+    it('must invoke the Transformer() constructor');
+
+    it('must invoke the buildFetchArgs() function');
+
+    it('must invoke the fetch() function', function() {
+      var methodName = 'sendSMS';
+      var methodDescriptor = {
+        method: "GET",
+        url: "http://api.twilio.com/v2/",
+        arguments: {
+          default: {
+            query: {
+              Accesskey: 'AABBCCDD', Type: 'EXT'
+            }
+          },
+          transform: function(PhoneNumber, Text) {
+            var q = {};
+            if (PhoneNumber != null) {
+              q.PhoneNumber = PhoneNumber;
+            }
+            if (Text != null) {
+              q.Text = Text;
+            }
+            return { query: q }
+          }
+        }
+      }
+      var obj = registerMethod(ctx, target, methodName, methodDescriptor, methodContext);
+      assert.equal(obj, target);
+      assert.isFunction(obj.sendSMS);
+
+      fetch.returns(Promise.resolve({
+        json: function() {
+          return {
+            "message": "ok"
+          }
+        }
+      }));
+
+      return obj.sendSMS('0987654321', 'Hello world').then(function() {
+        const fetchArgs = fetch.firstCall.args;
+        assert.equal(fetchArgs.length, 2);
+        assert.equal(fetchArgs[0], 'http://api.twilio.com/v2/?Accesskey=AABBCCDD&Type=EXT&PhoneNumber=0987654321&Text=Hello%20world');
+        assert.deepEqual(fetchArgs[1], {"method":"GET","headers":{}});
+      });
+    });
+
+    it('must invoke the getTicket/releaseTicket function');
+
+    it('must invoke F.transformArguments() method');
+
+    it('must invoke F.transformResponse() method');
+
+    it('must invoke F.transformException() method');
+  });
+
   describe('buildFetchArgs()', function() {
     var loggingFactory = dtk.createLoggingFactoryMock({ captureMethodCall: false });
     var ctx = {
@@ -177,7 +256,7 @@ describe('resolver', function() {
       });
       assert.isUndefined(fa.timeout);
     });
-  })
+  });
 
   describe('getQueryString()', function() {
     var Resolver = dtk.acquire('resolver');
@@ -219,5 +298,5 @@ describe('resolver', function() {
         assert.equal(ticketId.length, 22);
       });
     });
-  })
+  });
 });
