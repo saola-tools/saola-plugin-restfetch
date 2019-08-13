@@ -12,6 +12,8 @@ const pathToRegexp = require('path-to-regexp');
 const fetch = require('node-fetch');
 const url = require('url');
 
+const HTTP_HEADER_RETURN_CODE = 'X-Return-Code';
+
 fetch.Promise = Bluebird;
 
 function Service(params = {}) {
@@ -154,6 +156,21 @@ function registerMethod(ctx, target, methodName, methodDescriptor, methodContext
           if (FA.timeout != null && FA.timeout > 0) {
             p = p.timeout(FA.timeout);
           }
+
+          // rebuild the Error object if any
+          p = p.then(function (res) {
+            const returnCode = res.headers.get(HTTP_HEADER_RETURN_CODE);
+            if (returnCode != null && returnCode !== '0'&& returnCode !== 0) {
+              const body = res.json();
+              const err = new Error(body && body.message || 'Error message not found');
+              err.name = body && body.name || 'UnknownError';
+              err.payload = body && body.payload;
+              err.statusCode = res.status;
+              err.returnCode = returnCode;
+              return Bluebird.reject(err);
+            }
+            return res;
+          });
 
           // response processing
           p = p.then(function (res) {
