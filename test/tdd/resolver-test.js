@@ -147,6 +147,14 @@ describe('resolver', function() {
       assert.isFunction(obj.sendSMS);
 
       fetch.returns(Promise.resolve({
+        headers: {
+          get: function(headerName) {
+            if (headerName === 'X-Return-Code') {
+              return 0;
+            }
+            return undefined;
+          }
+        },
         json: function() {
           return {
             "message": "ok"
