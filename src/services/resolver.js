@@ -9,12 +9,8 @@ const schemato = Devebot.require('schemato');
 const validator = new schemato.Validator({ schemaVersion: 4 });
 const valvekit = require('valvekit');
 const pathToRegexp = require('path-to-regexp');
-const fetch = require('node-fetch');
+const RestInvoker = require('../utils/rest-invoker');
 const url = require('url');
-
-const HTTP_HEADER_RETURN_CODE = 'X-Return-Code';
-
-fetch.Promise = Bluebird;
 
 function Service(params = {}) {
   const L = params.loggingFactory.getLogger();
@@ -22,13 +18,16 @@ function Service(params = {}) {
   const packageName = params.packageName || 'app-restfetch';
   const blockRef = chores.getBlockRef(__filename, packageName);
 
-  const pluginCfg = lodash.get(params, ['sandboxConfig'], {});
+  const sandboxConfig = lodash.get(params, ['sandboxConfig'], {});
   const mappings = params.counselor.mappings;
   const injektor = new Injektor(chores.injektorOptions);
+  const restInvoker = new RestInvoker(params);
   const services = {};
-  const ctx = { L, T, blockRef, injektor };
+  const ctx = { L, T, blockRef, restInvoker, injektor,
+    responseOptions: sandboxConfig.responseOptions
+  };
 
-  init(ctx, services, mappings, pluginCfg.enabled !== false);
+  init(ctx, services, mappings, sandboxConfig.enabled !== false);
 
   this.lookupService = function(serviceName) {
     return services[serviceName];
@@ -92,7 +91,7 @@ function createService(ctx, storage, serviceName, serviceDescriptor) {
 }
 
 function registerMethod(ctx, target, methodName, methodDescriptor, methodContext) {
-  const { L, T, blockRef } = ctx;
+  const { L, T, blockRef, responseOptions, restInvoker } = ctx;
   const box = applyThroughput(ctx, methodDescriptor);
 
   target = target || {};
@@ -151,23 +150,36 @@ function registerMethod(ctx, target, methodName, methodDescriptor, methodContext
             }));
           }
 
-          let p = fetch(FA.url, FA.args);
+          const waitingOpts = {
+            total: 3,
+            delay: 1000,
+            trappedCode: 202,
+            timeout: methodDescriptor.timeout
+          };
 
-          if (FA.timeout != null && FA.timeout > 0) {
-            p = p.timeout(FA.timeout);
+          if (methodDescriptor.waiting && lodash.isObject(methodDescriptor.waiting)) {
+            lodash.assign(waitingOpts, lodash.pick(methodDescriptor.waiting, [
+              'total', 'delay', 'trappedCode'
+            ]));
           }
 
-          // rebuild the Error object if any
+          let p = restInvoker.fetch(FA.url, FA.args, waitingOpts);
+
+          // rebuild the Error object if any (node-fetch/response)
           p = p.then(function (res) {
+            const HTTP_HEADER_RETURN_CODE = lodash.get(responseOptions, [
+              'returnCode', 'headerName'
+            ], 'X-Return-Code');
             const returnCode = res.headers.get(HTTP_HEADER_RETURN_CODE);
-            if (returnCode != null && returnCode !== '0'&& returnCode !== 0) {
-              const body = res.json();
-              const err = new Error(body && body.message || 'Error message not found');
-              err.name = body && body.name || 'UnknownError';
-              err.payload = body && body.payload;
-              err.statusCode = res.status;
-              err.returnCode = returnCode;
-              return Bluebird.reject(err);
+            if (returnCode != null && returnCode !== '0' && returnCode !== 0) {
+              return Bluebird.resolve(res.json()).then(function(body) {
+                const err = new Error(body && body.message || 'Error message not found');
+                err.name = body && body.name || 'UnknownError';
+                err.payload = body && body.payload;
+                err.statusCode = res.status;
+                err.returnCode = returnCode;
+                return Bluebird.reject(err);
+              });
             }
             return res;
           });
@@ -211,7 +223,7 @@ function registerMethod(ctx, target, methodName, methodDescriptor, methodContext
   return target;
 }
 
-const FETCH_ARGS_FIELDS = ["headers", "params", "query"];
+const FETCH_ARGS_FIELDS = [ "headers", "params", "query" ];
 
 function buildFetchArgs(context = {}, descriptor = {}, methodArgs = {}) {
   const opts = lodash.merge({},

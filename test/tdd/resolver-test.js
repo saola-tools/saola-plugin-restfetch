@@ -4,8 +4,13 @@ var devebot = require('devebot');
 var lodash = devebot.require('lodash');
 var assert = require('chai').assert;
 var dtk = require('liberica').mockit;
+var sinon = require('liberica').sinon;
+var path = require('path');
 
 describe('resolver', function() {
+  var app = require(path.join(__dirname, '../app'));
+  var sandboxConfig = lodash.get(app.config, ['sandbox', 'default', 'plugins', 'appRestfetch']);
+
   describe('init()', function() {
     var loggingFactory = dtk.createLoggingFactoryMock({ captureMethodCall: false });
     var ctx = {
@@ -94,15 +99,19 @@ describe('resolver', function() {
 
   describe('registerMethod()', function() {
     var loggingFactory = dtk.createLoggingFactoryMock({ captureMethodCall: false });
+    var restInvoker = {
+      fetch: sinon.stub()
+    };
     var ctx = {
       L: loggingFactory.getLogger(),
       T: loggingFactory.getTracer(),
       blockRef: 'app-restfetch',
+      responseOptions: sandboxConfig.responseOptions,
+      restInvoker: restInvoker,
     }
 
     var Resolver = dtk.acquire('resolver');
     var registerMethod = dtk.get(Resolver, 'registerMethod');
-    var fetch = null;
 
     var target = {};
     var methodName = 'sendMail';
@@ -110,7 +119,7 @@ describe('resolver', function() {
     var methodContext = {};
 
     beforeEach(function() {
-      fetch = dtk.stub(Resolver, 'fetch');
+      restInvoker.fetch = sinon.stub()
     });
 
     it('skip register method if the methodDescriptor.enabled is false');
@@ -146,7 +155,7 @@ describe('resolver', function() {
       assert.equal(obj, target);
       assert.isFunction(obj.sendSMS);
 
-      fetch.returns(Promise.resolve({
+      restInvoker.fetch.returns(Promise.resolve({
         headers: {
           get: function(headerName) {
             if (headerName === 'X-Return-Code') {
@@ -163,8 +172,8 @@ describe('resolver', function() {
       }));
 
       return obj.sendSMS('0987654321', 'Hello world').then(function() {
-        const fetchArgs = fetch.firstCall.args;
-        assert.equal(fetchArgs.length, 2);
+        const fetchArgs = restInvoker.fetch.firstCall.args;
+        assert.equal(fetchArgs.length, 3);
         assert.equal(fetchArgs[0], 'http://api.twilio.com/v2/?Accesskey=AABBCCDD&Type=EXT&PhoneNumber=0987654321&Text=Hello%20world');
         assert.deepEqual(fetchArgs[1], {"method":"GET","headers":{}});
       });

@@ -1,6 +1,6 @@
 {
   "name": "app-restfetch",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "description": "Devebot Functionalify RestAPI layerware",
   "homepage": "https://github.com/apporo/app-restfetch.git",
   "author": {
@@ -35,9 +35,11 @@
     "devebot-plugin"
   ],
   "peerDependencies": {
+    "app-errorlist": "^0.3.4",
     "devebot": "^0.3.0"
   },
   "dependencies": {
+    "app-errorlist": "^0.3.4",
     "devebot": "^0.3.0",
     "node-fetch": "2.6.0",
     "path-to-regexp": "3.0.0",

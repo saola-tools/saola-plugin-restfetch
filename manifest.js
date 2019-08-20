@@ -31,9 +31,31 @@ module.exports = {
               }
             },
             "additionalProperties": false
-          }
+          },
+          "responseOptions": {
+            "type": "object",
+            "properties": {
+              "packageRef": {
+                "$ref": "#/definitions/responseOption"
+              },
+              "returnCode": {
+                "$ref": "#/definitions/responseOption"
+              }
+            }
+          },
         },
-        "additionalProperties": false
+        "additionalProperties": false,
+        "definitions": {
+          "responseOption": {
+            "type": "object",
+            "properties": {
+              "headerName": {
+                "type": "string"
+              }
+            },
+            "required": [ "headerName" ]
+          }
+        }
       }
     }
   }
