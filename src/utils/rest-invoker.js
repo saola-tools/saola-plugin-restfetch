@@ -23,7 +23,8 @@ function Service (params = {}) {
         loop: total,
         delay,
         trappedCode,
-        expiredTime: new Date((new Date()).getTime() + timeout)
+        expiredTime: new Date((new Date()).getTime() + timeout),
+        errorBuilder
       });
     }
     let p = fetch(url, args);
@@ -34,17 +35,24 @@ function Service (params = {}) {
   }
 }
 
-function doFetch (url, args, { delay, step, loop, trappedCode, expiredTime }) {
+function doFetch (url, args, { delay, step, loop, trappedCode, expiredTime, errorBuilder }) {
   let p = fetch(url, args);
 
   p = p.then(function (res) {
     if (res.status === trappedCode) {
       const now = new Date();
       if (expiredTime && expiredTime < now) {
-        return Bluebird.reject(new Error('fetch has been timeout'));
+        return Bluebird.reject(errorBuilder.newError('RetryLoopIsTimeout', {
+          payload: {
+            now: now.toISOString(),
+            expiredTime: expiredTime.toISOString()
+          }
+        }));
       }
       if (step > loop) {
-        return Bluebird.reject('Over loop');
+        return Bluebird.reject(errorBuilder.newError('RetryLoopOverLimit', {
+          payload: { step, loop }
+        }));
       }
       step = step + 1;
       let next = Bluebird.resolve();

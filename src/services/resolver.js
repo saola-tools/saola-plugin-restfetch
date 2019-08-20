@@ -13,18 +13,25 @@ const RestInvoker = require('../utils/rest-invoker');
 const url = require('url');
 
 function Service(params = {}) {
-  const L = params.loggingFactory.getLogger();
-  const T = params.loggingFactory.getTracer();
-  const packageName = params.packageName || 'app-restfetch';
+  const { loggingFactory, sandboxConfig, packageName } = params;
+  const L = loggingFactory.getLogger();
+  const T = loggingFactory.getTracer();
   const blockRef = chores.getBlockRef(__filename, packageName);
 
-  const sandboxConfig = lodash.get(params, ['sandboxConfig'], {});
-  const mappings = params.counselor.mappings;
+  const { counselor, errorManager } = params;
+
+  const errorBuilder = errorManager.register(packageName, {
+    errorCodes: sandboxConfig.errorCodes
+  });
+
+  const restInvoker = new RestInvoker({ errorBuilder, loggingFactory, packageName });
   const injektor = new Injektor(chores.injektorOptions);
-  const restInvoker = new RestInvoker(params);
+
+  const mappings = counselor.mappings;
   const services = {};
-  const ctx = { L, T, blockRef, restInvoker, injektor,
-    responseOptions: sandboxConfig.responseOptions
+  const ctx = { L, T, blockRef, restInvoker, injektor, errorBuilder,
+    responseOptions: sandboxConfig.responseOptions,
+    BusinessError: errorManager.BusinessError
   };
 
   init(ctx, services, mappings, sandboxConfig.enabled !== false);
@@ -34,7 +41,10 @@ function Service(params = {}) {
   }
 };
 
-Service.referenceList = [ 'counselor' ];
+Service.referenceHash = {
+  counselor: 'counselor',
+  errorManager: 'app-errorlist/manager'
+};
 
 module.exports = Service;
 
@@ -91,7 +101,7 @@ function createService(ctx, storage, serviceName, serviceDescriptor) {
 }
 
 function registerMethod(ctx, target, methodName, methodDescriptor, methodContext) {
-  const { L, T, blockRef, responseOptions, restInvoker } = ctx;
+  const { L, T, blockRef, BusinessError, errorBuilder, responseOptions, restInvoker } = ctx;
   const box = applyThroughput(ctx, methodDescriptor);
 
   target = target || {};
@@ -173,12 +183,14 @@ function registerMethod(ctx, target, methodName, methodDescriptor, methodContext
             const returnCode = res.headers.get(HTTP_HEADER_RETURN_CODE);
             if (returnCode != null && returnCode !== '0' && returnCode !== 0) {
               return Bluebird.resolve(res.json()).then(function(body) {
-                const err = new Error(body && body.message || 'Error message not found');
-                err.name = body && body.name || 'UnknownError';
-                err.payload = body && body.payload;
-                err.statusCode = res.status;
-                err.returnCode = returnCode;
-                return Bluebird.reject(err);
+                const errName = body && body.name || 'UnknownError';
+                const errMessage = body && body.message || 'Error message not found';
+                const errOptions = {
+                  payload: (body && body.payload),
+                  statusCode: res.status,
+                  returnCode: returnCode
+                }
+                return Bluebird.reject(new BusinessError(errName, errMessage, errOptions));
               });
             }
             return res;
@@ -197,7 +209,7 @@ function registerMethod(ctx, target, methodName, methodDescriptor, methodContext
             return Bluebird.resolve(output);
           });
 
-          // error processing
+          // node-fetch error processing
           p = p.catch(function (err) {
             L.has('warn') && L.log('warn', T.add({
               requestId, ticketId, methodName, eName: err.name, eMessage: err.message
@@ -205,6 +217,17 @@ function registerMethod(ctx, target, methodName, methodDescriptor, methodContext
               tags: [ blockRef, 'method-rest' ],
               text: '[${requestId}] Method[${methodName}] has failed, error[${eName}]: ${eMessage}'
             }));
+            if (err instanceof BusinessError) {
+              return Bluebird.reject(err);
+            }
+            if (err instanceof Bluebird.TimeoutError) {
+              return Bluebird.rejec(errorBuilder.newError('ClientRequestTimeout', {
+                payload: {
+                  requestId: requestId,
+                  timeout: methodDescriptor.timeout,
+                }
+              }));
+            }
             return Bluebird.reject(F.transformException(err));
           });
 
