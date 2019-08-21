@@ -11,7 +11,7 @@ describe('rest-invoker', function() {
     var ctx = {
       L: loggingFactory.getLogger(),
       T: loggingFactory.getTracer(),
-      blockRef: 'app-restfetch',
+      blockRef: 'app-restfetch/restInvoker',
     }
   });
 });

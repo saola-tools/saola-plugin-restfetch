@@ -15,7 +15,7 @@ function Service (params = {}) {
   const T = loggingFactory.getTracer();
   const blockRef = chores.getBlockRef(__filename, packageName);
 
-  this.fetch = function fetchLoop (url, args, opts) {
+  this.fetch = function (url, args, opts) {
     if ('trappedCode' in opts) {
       const { trappedCode, delay, total = 3, timeout } = opts;
       return doFetch(url, args, {
@@ -42,7 +42,7 @@ function doFetch (url, args, { delay, step, loop, trappedCode, expiredTime, erro
     if (res.status === trappedCode) {
       const now = new Date();
       if (expiredTime && expiredTime < now) {
-        return Bluebird.reject(errorBuilder.newError('RetryLoopIsTimeout', {
+        return Bluebird.reject(errorBuilder.newError('RetryRecallIsTimeout', {
           payload: {
             now: now.toISOString(),
             expiredTime: expiredTime.toISOString()
@@ -50,7 +50,7 @@ function doFetch (url, args, { delay, step, loop, trappedCode, expiredTime, erro
         }));
       }
       if (step > loop) {
-        return Bluebird.reject(errorBuilder.newError('RetryLoopOverLimit', {
+        return Bluebird.reject(errorBuilder.newError('RetryRecallOverLimit', {
           payload: { step, loop }
         }));
       }

@@ -12,13 +12,13 @@ module.exports = {
           returnCode: 9002,
           statusCode: 408
         },
-        RetryLoopIsTimeout: {
-          message: 'Retry loop has timeout',
+        RetryRecallIsTimeout: {
+          message: 'Retry request has timeout',
           returnCode: 9005,
           statusCode: 408
         },
-        RetryLoopOverLimit: {
-          message: 'Retry loop has over limit',
+        RetryRecallOverLimit: {
+          message: 'Retry request reachs limit',
           returnCode: 9006,
           statusCode: 408
         },
