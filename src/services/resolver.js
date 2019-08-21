@@ -102,7 +102,6 @@ function createService(ctx, storage, serviceName, serviceDescriptor) {
 
 function registerMethod(ctx, target, methodName, methodDescriptor, methodContext) {
   const { L, T, blockRef, BusinessError, errorBuilder, responseOptions, restInvoker } = ctx;
-  chores.assertOk(L, T, blockRef, BusinessError, errorBuilder, responseOptions, restInvoker);
 
   const box = applyThroughput(ctx, methodDescriptor);
 

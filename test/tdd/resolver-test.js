@@ -6,6 +6,7 @@ var assert = require('chai').assert;
 var dtk = require('liberica').mockit;
 var sinon = require('liberica').sinon;
 var path = require('path');
+var BusinessError = require('app-errorlist').BusinessError;
 
 describe('resolver', function() {
   var app = require(path.join(__dirname, '../app'));
@@ -102,12 +103,15 @@ describe('resolver', function() {
     var restInvoker = {
       fetch: sinon.stub()
     };
+    var errorBuilder = {};
     var ctx = {
       L: loggingFactory.getLogger(),
       T: loggingFactory.getTracer(),
       blockRef: 'app-restfetch',
+      BusinessError,
+      errorBuilder,
       responseOptions: sandboxConfig.responseOptions,
-      restInvoker: restInvoker,
+      restInvoker,
     }
 
     var Resolver = dtk.acquire('resolver');

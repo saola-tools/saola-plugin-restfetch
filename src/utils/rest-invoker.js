@@ -35,32 +35,34 @@ function Service (params = {}) {
   }
 }
 
-function doFetch (url, args, { delay, step, loop, trappedCode, expiredTime, errorBuilder }) {
+function doFetch (url, args, exts = {}) {
+  let { delay, step, loop, trappedCode, expiredTime, errorBuilder } = exts;
+  const now = new Date();
+  if (expiredTime && expiredTime < now) {
+    return Bluebird.reject(errorBuilder.newError('RetryRecallIsTimeout', {
+      payload: {
+        now: now.toISOString(),
+        expiredTime: expiredTime.toISOString()
+      }
+    }));
+  }
+  if (step > loop) {
+    return Bluebird.reject(errorBuilder.newError('RetryRecallOverLimit', {
+      payload: { step, loop }
+    }));
+  }
+
   let p = fetch(url, args);
 
   p = p.then(function (res) {
     if (res.status === trappedCode) {
-      const now = new Date();
-      if (expiredTime && expiredTime < now) {
-        return Bluebird.reject(errorBuilder.newError('RetryRecallIsTimeout', {
-          payload: {
-            now: now.toISOString(),
-            expiredTime: expiredTime.toISOString()
-          }
-        }));
-      }
-      if (step > loop) {
-        return Bluebird.reject(errorBuilder.newError('RetryRecallOverLimit', {
-          payload: { step, loop }
-        }));
-      }
       step = step + 1;
       let next = Bluebird.resolve();
       if (delay > 0) {
         next = next.delay(delay);
       }
       return next.then(function() {
-        return doFetch(url, args, { trappedCode, delay, step, loop, expiredTime });
+        return doFetch(url, args, exts);
       });
     }
     return res;
