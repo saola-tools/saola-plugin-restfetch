@@ -217,19 +217,35 @@ function registerMethod(ctx, target, methodName, methodDescriptor, methodContext
               tags: [ blockRef, 'method-rest' ],
               text: '[${requestId}] Method[${methodName}] has failed, error[${eName}]: ${eMessage}'
             }));
+            // Business errors
             if (err instanceof BusinessError) {
               return Bluebird.reject(err);
             }
+            // timeout from Promise.timeout()
             if (err instanceof Bluebird.TimeoutError) {
-              return Bluebird.rejec(errorBuilder.newError('ClientRequestTimeout', {
+              return Bluebird.rejec(errorBuilder.newError('RequestTimeoutOnClient', {
                 payload: {
                   requestId: requestId,
                   timeout: methodDescriptor.timeout,
                 }
               }));
             }
-            return Bluebird.reject(F.transformException(err));
+            // node-fetch errors
+            if (err.name === 'AbortError') {
+              return Bluebird.rejec(errorBuilder.newError('RequestAbortedByClient', {
+                payload: {
+                  requestId: requestId,
+                }
+              }));
+            }
+            return Bluebird.reject(err);
           });
+
+          if (F.transformException) {
+            p = p.catch(function(err) {
+              return Bluebird.reject(F.transformException(err));
+            });
+          }
 
           return p;
         });
@@ -323,9 +339,7 @@ const DEFAULT_TRANSFORMERS = {
     }
     return res.json();
   },
-  exception: function (error) {
-    return error;
-  }
+  exception: null,
 }
 
 function Transformer(descriptor) {
