@@ -17,20 +17,32 @@ function Service (params = {}) {
 
   this.fetch = function (url, args, opts) {
     if ('trappedCode' in opts) {
-      const { trappedCode, delay, total = 3, timeout } = opts;
-      return doFetch(url, args, {
+      const { requestId, trappedCode, delay, total = 3, timeout } = opts;
+
+      const loopOpts = {
+        requestId,
         step: 1,
         loop: total,
         delay,
         trappedCode,
         expiredTime: new Date((new Date()).getTime() + timeout),
-        errorBuilder
-      });
+      };
+
+      L.has('info') && L.log('info', T.add(loopOpts).toMessage({
+        tags: [ blockRef, 'fetch' ],
+        tmpl: '[${requestId}] Retry if the statusCode[${trappedCode}] is trapped, expired at ${expiredTime}'
+      }));
+
+      loopOpts.errorBuilder = errorBuilder;
+
+      return doFetch(url, args, loopOpts);
     }
+
     let p = fetch(url, args);
     if (opts.timeout != null && opts.timeout > 0) {
       p = p.timeout(opts.timeout);
     }
+
     return p;
   }
 }

@@ -162,6 +162,7 @@ function registerMethod(ctx, target, methodName, methodDescriptor, methodContext
           }
 
           const waitingOpts = {
+            requestId,
             total: 3,
             delay: 1000,
             trappedCode: 202,

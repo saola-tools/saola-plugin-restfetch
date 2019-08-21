@@ -98,6 +98,34 @@ describe('resolver', function() {
     });
   });
 
+  describe('applyThroughput()', function() {
+    var loggingFactory = dtk.createLoggingFactoryMock({ captureMethodCall: false });
+    var ctx = {
+      L: loggingFactory.getLogger(),
+      T: loggingFactory.getTracer(),
+      blockRef: 'app-restfetch/resolver',
+    }
+
+    var Resolver = dtk.acquire('resolver');
+    var applyThroughput = dtk.get(Resolver, 'applyThroughput');
+
+    it('should create nothing if the parameters are not provided', function() {
+      var box = applyThroughput(ctx, {});
+      assert.isNull(box.ticketDeliveryDelay);
+      assert.isNull(box.throughputValve);
+    });
+
+    it('should create the correct semaphore', function() {
+      var box = applyThroughput(ctx, {
+        throughputQuota: 2
+      });
+      assert.isObject(box.throughputValve);
+      assert.equal(box.throughputValve.available, 2);
+      assert.equal(box.throughputValve.capacity, 2);
+      assert.equal(box.throughputValve.waiting, 0);
+    });
+  });
+
   describe('registerMethod()', function() {
     var loggingFactory = dtk.createLoggingFactoryMock({ captureMethodCall: false });
     var restInvoker = {
