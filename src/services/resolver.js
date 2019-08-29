@@ -91,7 +91,7 @@ function createService(ctx, storage, serviceName, serviceDescriptor) {
     text: ' - Initialize the service[${serviceName}], enabled: ${enabled}'
   }));
   if (serviceDescriptor.enabled !== false) {
-    const methodContext = lodash.get(serviceDescriptor, ["arguments", "default"], {});
+    const methodContext = lodash.pick(serviceDescriptor, ["arguments", "urlObject"], {});
     const methods = serviceDescriptor.methods || {};
     lodash.forOwn(methods, function(methodDescriptor, methodName) {
       registerMethod(ctx, storage[serviceName], methodName, methodDescriptor, methodContext);
@@ -268,7 +268,7 @@ const FETCH_ARGS_FIELDS = [ "headers", "params", "query" ];
 
 function buildFetchArgs(context = {}, descriptor = {}, methodArgs = {}) {
   const opts = lodash.merge({},
-    lodash.pick(context, FETCH_ARGS_FIELDS),
+    lodash.pick(lodash.get(context, ["arguments", "default"], {}), FETCH_ARGS_FIELDS),
     lodash.pick(lodash.get(descriptor, ["arguments", "default"], {}), FETCH_ARGS_FIELDS),
     lodash.pick(methodArgs, FETCH_ARGS_FIELDS));
   const args = {
@@ -290,12 +290,18 @@ function buildFetchArgs(context = {}, descriptor = {}, methodArgs = {}) {
     }
   }
 
+  let urlObj = null;
   let urlString = descriptor.url;
-  if (!lodash.isString(urlString) || urlString.length == 0) {
-    return { error: new Error('invalid-http-url') }
+
+  if (lodash.isString(urlString) && urlString.length > 0) {
+    urlObj = url.parse(urlString);
+  } else {
+    urlObj = lodash.merge({}, context.urlObject, descriptor.urlObject);
   }
 
-  let urlObj = url.parse(urlString);
+  if (lodash.isEmpty(urlObj)) {
+    return { error: new Error('invalid-http-url') }
+  }
 
   if (!descriptor.pathnameRegexp) {
     descriptor.pathnameRegexp = pathToRegexp.compile(urlObj.pathname);

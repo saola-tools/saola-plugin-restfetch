@@ -228,12 +228,20 @@ describe('resolver', function() {
       blockRef: 'app-restfetch',
     }
 
-    var context = {
-      headers: {
-        "Content-Type": "application/json"
+    var methodContext = {
+      urlObject: {
+        protocol: 'https',
+        hostname: 'api.github.com',
       },
-      query: {
-        accessToken: 'abc.xyz:hello-world'
+      arguments: {
+        default: {
+          headers: {
+            "Content-Type": "application/json"
+          },
+          query: {
+            accessToken: 'abc.xyz:hello-world'
+          }
+        }
       }
     }
 
@@ -268,7 +276,12 @@ describe('resolver', function() {
     var buildFetchArgs = dtk.get(Resolver, 'buildFetchArgs');
 
     it('return the fetch parameters which built from the arguments of a method invocation', function() {
-      var fa = buildFetchArgs(context, descriptor, methodArgs);
+      var methodDescriptor = lodash.assign(lodash.omit(descriptor, ['url']), {
+        urlObject: {
+          pathname: '/repos/:owner/:repoId'
+        }
+      });
+      var fa = buildFetchArgs(methodContext, methodDescriptor, methodArgs);
       assert.isUndefined(fa.error);
       assert.equal(fa.url, 'https://api.github.com/repos/devebot/valvekit?accessToken=0987654321&type[]=api&type[]=sms');
       assert.deepEqual(fa.args, {
@@ -287,7 +300,7 @@ describe('resolver', function() {
           name: 'PowerFan-W200'
         }
       }
-      var fa = buildFetchArgs(context, descriptor, methodArgs);
+      var fa = buildFetchArgs(methodContext, descriptor, methodArgs);
       assert.isUndefined(fa.error);
       assert.equal(fa.url, 'https://api.github.com/repos/apporo/app-restfetch?accessToken=1234567890');
       if (lodash.isString(fa.args.body)) {

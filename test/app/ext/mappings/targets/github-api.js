@@ -1,9 +1,16 @@
 module.exports = {
   enabled: true,
+  urlObject: {
+    protocol: 'https',
+    hostname: 'api.github.com',
+    port: 443,
+  },
   methods: {
     getListBranches: {
       method: "GET",
-      url: "https://api.github.com:443/repos/:owner/:repoId/branches",
+      urlObject: {
+        pathname: '/repos/:owner/:repoId/branches',
+      },
       throughputQuota: 1,
       ticketDeliveryDelay: 2000,
       arguments: {
@@ -21,7 +28,9 @@ module.exports = {
     },
     getProjectInfo: {
       method: "GET",
-      url: "https://api.github.com:443/repos/:userOrOrgan/:projectId",
+      urlObject: {
+        pathname: '/repos/:userOrOrgan/:projectId',
+      },
       arguments: {
         default: {
           params: {
