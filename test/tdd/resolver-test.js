@@ -276,11 +276,11 @@ describe('resolver', function() {
     var buildFetchArgs = dtk.get(Resolver, 'buildFetchArgs');
 
     it('return the fetch parameters which built from the arguments of a method invocation', function() {
-      var methodDescriptor = lodash.assign(lodash.omit(descriptor, ['url']), {
+      var methodDescriptor = lodash.assign({
         urlObject: {
           pathname: '/repos/:owner/:repoId'
         }
-      });
+      }, descriptor);
       var fa = buildFetchArgs(methodContext, methodDescriptor, methodArgs);
       assert.isUndefined(fa.error);
       assert.equal(fa.url, 'https://api.github.com/repos/devebot/valvekit?accessToken=0987654321&type[]=api&type[]=sms');
@@ -294,13 +294,16 @@ describe('resolver', function() {
     });
 
     it('return the fetch parameters which built from the method arguments and default params of descriptor', function() {
+      var methodDescriptor = lodash.assign({
+        url: "https://api.github.com/repos/:owner/:repoId",
+      }, descriptor);
       var methodArgs = {
         body: {
           orderId: 'ed441963-52b3-4981-ab83-6ea9eceb2213',
           name: 'PowerFan-W200'
         }
       }
-      var fa = buildFetchArgs(methodContext, descriptor, methodArgs);
+      var fa = buildFetchArgs(methodContext, methodDescriptor, methodArgs);
       assert.isUndefined(fa.error);
       assert.equal(fa.url, 'https://api.github.com/repos/apporo/app-restfetch?accessToken=1234567890');
       if (lodash.isString(fa.args.body)) {

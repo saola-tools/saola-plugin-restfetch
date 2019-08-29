@@ -3,7 +3,6 @@
 const Devebot = require('devebot');
 const Bluebird = Devebot.require('bluebird');
 const chores = Devebot.require('chores');
-const lodash = Devebot.require('lodash');
 const fetch = require('node-fetch');
 
 fetch.Promise = Bluebird;
