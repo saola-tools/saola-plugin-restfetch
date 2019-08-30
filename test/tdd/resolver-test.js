@@ -2,8 +2,8 @@
 
 var devebot = require('devebot');
 var lodash = devebot.require('lodash');
-var assert = require('chai').assert;
-var dtk = require('liberica').mockit;
+var assert = require('liberica').assert;
+var mockit = require('liberica').mockit;
 var sinon = require('liberica').sinon;
 var path = require('path');
 var BusinessError = require('app-errorlist').BusinessError;
@@ -13,7 +13,7 @@ describe('resolver', function() {
   var sandboxConfig = lodash.get(app.config, ['sandbox', 'default', 'plugins', 'appRestfetch']);
 
   describe('init()', function() {
-    var loggingFactory = dtk.createLoggingFactoryMock({ captureMethodCall: false });
+    var loggingFactory = mockit.createLoggingFactoryMock({ captureMethodCall: false });
     var ctx = {
       L: loggingFactory.getLogger(),
       T: loggingFactory.getTracer(),
@@ -29,9 +29,9 @@ describe('resolver', function() {
     var Resolver, init, createService;
 
     beforeEach(function() {
-      Resolver = dtk.acquire('resolver');
-      init = dtk.get(Resolver, 'init');
-      createService = dtk.stub(Resolver, 'createService');
+      Resolver = mockit.acquire('resolver');
+      init = mockit.get(Resolver, 'init');
+      createService = mockit.stub(Resolver, 'createService');
     });
 
     it('createService will not be called if enabled ~ false', function() {
@@ -53,7 +53,7 @@ describe('resolver', function() {
   });
 
   describe('createService()', function() {
-    var loggingFactory = dtk.createLoggingFactoryMock({ captureMethodCall: false });
+    var loggingFactory = mockit.createLoggingFactoryMock({ captureMethodCall: false });
     var ctx = {
       L: loggingFactory.getLogger(),
       T: loggingFactory.getTracer(),
@@ -67,9 +67,9 @@ describe('resolver', function() {
     var Resolver, createService, registerMethod;
 
     beforeEach(function() {
-      Resolver = dtk.acquire('resolver');
-      createService = dtk.get(Resolver, 'createService');
-      registerMethod = dtk.stub(Resolver, 'registerMethod');
+      Resolver = mockit.acquire('resolver');
+      createService = mockit.get(Resolver, 'createService');
+      registerMethod = mockit.stub(Resolver, 'registerMethod');
     });
 
     it('registerMethod will not be called if serviceDescriptor.enabled ~ false', function() {
@@ -99,15 +99,15 @@ describe('resolver', function() {
   });
 
   describe('applyThroughput()', function() {
-    var loggingFactory = dtk.createLoggingFactoryMock({ captureMethodCall: false });
+    var loggingFactory = mockit.createLoggingFactoryMock({ captureMethodCall: false });
     var ctx = {
       L: loggingFactory.getLogger(),
       T: loggingFactory.getTracer(),
       blockRef: 'app-restfetch/resolver',
     }
 
-    var Resolver = dtk.acquire('resolver');
-    var applyThroughput = dtk.get(Resolver, 'applyThroughput');
+    var Resolver = mockit.acquire('resolver');
+    var applyThroughput = mockit.get(Resolver, 'applyThroughput');
 
     it('should create nothing if the parameters are not provided', function() {
       var box = applyThroughput(ctx, {});
@@ -127,7 +127,7 @@ describe('resolver', function() {
   });
 
   describe('registerMethod()', function() {
-    var loggingFactory = dtk.createLoggingFactoryMock({ captureMethodCall: false });
+    var loggingFactory = mockit.createLoggingFactoryMock({ captureMethodCall: false });
     var restInvoker = {
       fetch: sinon.stub()
     };
@@ -142,8 +142,8 @@ describe('resolver', function() {
       restInvoker,
     }
 
-    var Resolver = dtk.acquire('resolver');
-    var registerMethod = dtk.get(Resolver, 'registerMethod');
+    var Resolver = mockit.acquire('resolver');
+    var registerMethod = mockit.get(Resolver, 'registerMethod');
 
     var target = {};
     var methodName = 'sendMail';
@@ -221,7 +221,7 @@ describe('resolver', function() {
   });
 
   describe('buildFetchArgs()', function() {
-    var loggingFactory = dtk.createLoggingFactoryMock({ captureMethodCall: false });
+    var loggingFactory = mockit.createLoggingFactoryMock({ captureMethodCall: false });
     var ctx = {
       L: loggingFactory.getLogger(),
       T: loggingFactory.getTracer(),
@@ -232,6 +232,7 @@ describe('resolver', function() {
       urlObject: {
         protocol: 'https',
         hostname: 'api.github.com',
+        pathname: '/repos'
       },
       arguments: {
         default: {
@@ -272,8 +273,12 @@ describe('resolver', function() {
       }
     }
 
-    var Resolver = dtk.acquire('resolver');
-    var buildFetchArgs = dtk.get(Resolver, 'buildFetchArgs');
+    var Resolver = mockit.acquire('resolver');
+    var buildFetchArgs = mockit.get(Resolver, 'buildFetchArgs');
+
+    it('throw the Error if descriptor.method not found');
+
+    it('throw the Error if both descriptor.url and descriptor.urlObject not found');
 
     it('return the fetch parameters which built from the arguments of a method invocation', function() {
       var methodDescriptor = lodash.assign({
@@ -324,8 +329,8 @@ describe('resolver', function() {
   });
 
   describe('getQueryString()', function() {
-    var Resolver = dtk.acquire('resolver');
-    var getQueryString = dtk.get(Resolver, 'getQueryString');
+    var Resolver = mockit.acquire('resolver');
+    var getQueryString = mockit.get(Resolver, 'getQueryString');
 
     it('Create a query string properly', function() {
       assert.isEmpty(getQueryString({}));
@@ -345,7 +350,7 @@ describe('resolver', function() {
   });
 
   describe('getTicket()/releaseTicket()', function() {
-    var loggingFactory = dtk.createLoggingFactoryMock({ captureMethodCall: false });
+    var loggingFactory = mockit.createLoggingFactoryMock({ captureMethodCall: false });
     var ctx = {
       L: loggingFactory.getLogger(),
       T: loggingFactory.getTracer(),
@@ -353,8 +358,8 @@ describe('resolver', function() {
     }
     var box = {};
 
-    var Resolver = dtk.acquire('resolver');
-    var getTicket = dtk.get(Resolver, 'getTicket');
+    var Resolver = mockit.acquire('resolver');
+    var getTicket = mockit.get(Resolver, 'getTicket');
 
     it('return default ticket if throughputValve is empty', function() {
       var ticket = getTicket(ctx);
