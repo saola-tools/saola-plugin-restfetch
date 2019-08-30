@@ -232,7 +232,6 @@ describe('resolver', function() {
       urlObject: {
         protocol: 'https',
         hostname: 'api.github.com',
-        pathname: '/repos'
       },
       arguments: {
         default: {
@@ -247,7 +246,6 @@ describe('resolver', function() {
     }
 
     var descriptor = {
-      url: "https://api.github.com/repos/:owner/:repoId",
       method: "GET",
       arguments: {
         default: {
@@ -279,6 +277,20 @@ describe('resolver', function() {
     it('throw the Error if descriptor.method not found');
 
     it('throw the Error if both descriptor.url and descriptor.urlObject not found');
+
+    it('build the fetch parameters from the arguments in which the pathname is undefined', function() {
+      var methodDescriptor = lodash.clone(descriptor);
+      var fa = buildFetchArgs(methodContext, methodDescriptor, methodArgs);
+      assert.isUndefined(fa.error);
+      assert.equal(fa.url, 'https://api.github.com?accessToken=0987654321&type[]=api&type[]=sms');
+      assert.deepEqual(fa.args, {
+        method: 'GET',
+        headers: {
+          "Content-Type": "application/json"
+        }
+      });
+      assert.isUndefined(fa.timeout);
+    });
 
     it('return the fetch parameters which built from the arguments of a method invocation', function() {
       var methodDescriptor = lodash.assign({

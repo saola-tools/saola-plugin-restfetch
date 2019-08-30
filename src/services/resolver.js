@@ -303,13 +303,18 @@ function buildFetchArgs(context = {}, descriptor = {}, methodArgs = {}) {
     return { error: new Error('invalid-http-url') }
   }
 
-  if (!descriptor.pathnameRegexp) {
-    descriptor.pathnameRegexp = pathToRegexp.compile(urlObj.pathname);
+  if (urlObj.pathname) {
+    if (!descriptor.pathnameRegexp) {
+      descriptor.pathnameRegexp = pathToRegexp.compile(urlObj.pathname);
+    }
   }
-  try {
-    urlObj.pathname = descriptor.pathnameRegexp(opts.params);
-  } catch (error) {
-    return { error: error }
+
+  if (descriptor.pathnameRegexp) {
+    try {
+      urlObj.pathname = descriptor.pathnameRegexp(opts.params);
+    } catch (error) {
+      return { error: error }
+    }
   }
 
   urlString = url.format(urlObj);
