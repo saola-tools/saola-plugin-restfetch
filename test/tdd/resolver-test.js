@@ -276,7 +276,12 @@ describe('resolver', function() {
 
     it('throw the Error if descriptor.method not found');
 
-    it('throw the Error if both descriptor.url and descriptor.urlObject not found');
+    it('throw the Error if both descriptor.url and descriptor.urlObject not found', function() {
+      var fa = buildFetchArgs({}, { method: 'GET' }, methodArgs);
+      assert.instanceOf(fa.error, Error);
+      assert.isUndefined(fa.url);
+      assert.isUndefined(fa.args);
+    });
 
     it('build the fetch parameters from the arguments in which the pathname is undefined', function() {
       var methodDescriptor = lodash.clone(descriptor);
