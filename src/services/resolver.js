@@ -161,21 +161,25 @@ function registerMethod(ctx, target, methodName, methodDescriptor, methodContext
             }));
           }
 
-          const waitingOpts = {
+          const fetchOpts = {
             requestId,
-            total: 3,
-            delay: 1000,
-            trappedCode: 202,
             timeout: methodDescriptor.timeout
           };
 
-          if (methodDescriptor.waiting && lodash.isObject(methodDescriptor.waiting)) {
-            lodash.assign(waitingOpts, lodash.pick(methodDescriptor.waiting, [
+          if (methodDescriptor.waiting && methodDescriptor.waiting.enabled !== false) {
+            lodash.assign(fetchOpts, {
+              total: 3,
+              delay: 1000,
+              trappedCode: 202,
+            }, lodash.pick(methodDescriptor.waiting, [
               'total', 'delay', 'trappedCode'
             ]));
+            if (!lodash.isArray(fetchOpts.trappedCode)) {
+              fetchOpts.trappedCode = [fetchOpts.trappedCode];
+            }
           }
 
-          let p = restInvoker.fetch(FA.url, FA.args, waitingOpts);
+          let p = restInvoker.fetch(FA.url, FA.args, fetchOpts);
 
           // rebuild the Error object if any (node-fetch/response)
           p = p.then(function (res) {

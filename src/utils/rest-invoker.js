@@ -29,7 +29,7 @@ function Service (params = {}) {
 
       L.has('info') && L.log('info', T.add(loopOpts).toMessage({
         tags: [ blockRef, 'fetch' ],
-        tmpl: '[${requestId}] Retry if the statusCode[${trappedCode}] is trapped, expired at ${expiredTime}'
+        tmpl: '[${requestId}] Retry if the statusCode ${trappedCode} is trapped, expired at ${expiredTime}'
       }));
 
       loopOpts.errorBuilder = errorBuilder;
@@ -66,7 +66,7 @@ function doFetch (url, args, exts = {}) {
   let p = fetch(url, args);
 
   p = p.then(function (res) {
-    if (res.status === trappedCode) {
+    if (Array.isArray(trappedCode) && trappedCode.indexOf(res.status) >= 0) {
       step = step + 1;
       let next = Bluebird.resolve();
       if (delay > 0) {
