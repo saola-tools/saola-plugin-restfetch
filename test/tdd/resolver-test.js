@@ -160,7 +160,11 @@ describe('resolver', function() {
 
     it('must invoke the buildFetchArgs() function');
 
-    it('must invoke the fetch() function', function() {
+    it('skip the retry-loop if the waiting attribute is absent');
+
+    it('skip the retry-loop if the waiting.enabled is false');
+
+    it('must invoke the restInvoker.fetch() function', function() {
       var methodName = 'sendSMS';
       var methodDescriptor = {
         method: "GET",

@@ -3,6 +3,7 @@
 const Devebot = require('devebot');
 const Bluebird = Devebot.require('bluebird');
 const chores = Devebot.require('chores');
+const lodash = Devebot.require('lodash');
 const fetch = require('node-fetch');
 
 fetch.Promise = Bluebird;
@@ -66,7 +67,7 @@ function doFetch (url, args, exts = {}) {
   let p = fetch(url, args);
 
   p = p.then(function (res) {
-    if (Array.isArray(trappedCode) && trappedCode.indexOf(res.status) >= 0) {
+    if (matchTrappedCodes(trappedCode, res.status)) {
       step = step + 1;
       let next = Bluebird.resolve();
       if (delay > 0) {
@@ -80,6 +81,18 @@ function doFetch (url, args, exts = {}) {
   });
 
   return p;
+}
+
+function matchTrappedCodes (trappedCodes, statusCode) {
+  if (trappedCodes) {
+    if (lodash.isNumber(trappedCodes) && trappedCodes === statusCode) {
+      return true;
+    }
+    if (lodash.isArray(trappedCodes) && trappedCodes.indexOf(statusCode) >= 0) {
+      return true;
+    }
+  }
+  return false;
 }
 
 module.exports = Service;

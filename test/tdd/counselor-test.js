@@ -3,9 +3,10 @@
 var devebot = require('devebot');
 var lodash = devebot.require('lodash');
 var path = require('path');
-var assert = require('liberica').assert;
-var mockit = require('liberica').mockit;
-var sinon = require('liberica').sinon;
+var liberica = require('liberica');
+var assert = liberica.assert;
+var mockit = liberica.mockit;
+var sinon = liberica.sinon;
 
 describe('counselor', function() {
   describe('unifyHttpHeaderName()', function() {

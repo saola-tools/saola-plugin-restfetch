@@ -174,9 +174,6 @@ function registerMethod(ctx, target, methodName, methodDescriptor, methodContext
             }, lodash.pick(methodDescriptor.waiting, [
               'total', 'delay', 'trappedCode'
             ]));
-            if (!lodash.isArray(fetchOpts.trappedCode)) {
-              fetchOpts.trappedCode = [fetchOpts.trappedCode];
-            }
           }
 
           let p = restInvoker.fetch(FA.url, FA.args, fetchOpts);
