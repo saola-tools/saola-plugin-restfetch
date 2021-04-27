@@ -294,6 +294,11 @@ function buildFetchArgs(context = {}, descriptor = {}, methodArgs = {}) {
   let urlObj = null;
   let urlString = descriptor.url;
 
+  let customUrl = methodArgs.customUrl;
+  if (!lodash.isEmpty(customUrl)) {
+    urlString = customUrl;
+  }
+
   if (lodash.isString(urlString) && urlString.length > 0) {
     urlObj = url.parse(urlString);
   } else {
@@ -425,6 +430,9 @@ const SCHEMA_METHOD_ARGS = {
           "type": "object"
         }
       ]
+    },
+    "customUrl": {
+      "type": "string"
     }
   },
   "additionalProperties": false
