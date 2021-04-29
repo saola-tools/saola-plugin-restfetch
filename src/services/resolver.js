@@ -309,13 +309,13 @@ function buildFetchArgs(context = {}, descriptor = {}, methodArgs = {}) {
     return { error: new Error('invalid-http-url') }
   }
 
-  if (urlObj.pathname) {
+  if (urlObj.pathname && lodash.isEmpty(customUrl)) {
     if (!descriptor.pathnameRegexp) {
       descriptor.pathnameRegexp = pathToRegexp.compile(urlObj.pathname);
     }
   }
 
-  if (descriptor.pathnameRegexp) {
+  if (descriptor.pathnameRegexp && lodash.isEmpty(customUrl)) {
     try {
       urlObj.pathname = descriptor.pathnameRegexp(opts.params);
     } catch (error) {
