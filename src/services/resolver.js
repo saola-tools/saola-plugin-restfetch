@@ -226,7 +226,7 @@ function registerMethod(ctx, target, methodName, methodDescriptor, methodContext
             }
             // timeout from Promise.timeout()
             if (err instanceof Bluebird.TimeoutError) {
-              return Bluebird.rejec(errorBuilder.newError('RequestTimeoutOnClient', {
+              return Bluebird.reject(errorBuilder.newError('RequestTimeoutOnClient', {
                 payload: {
                   requestId: requestId,
                   timeout: methodDescriptor.timeout,
@@ -235,7 +235,7 @@ function registerMethod(ctx, target, methodName, methodDescriptor, methodContext
             }
             // node-fetch errors
             if (err.name === 'AbortError') {
-              return Bluebird.rejec(errorBuilder.newError('RequestAbortedByClient', {
+              return Bluebird.reject(errorBuilder.newError('RequestAbortedByClient', {
                 payload: {
                   requestId: requestId,
                 }
