@@ -31,6 +31,7 @@ function Service(params = {}) {
   const services = {};
   const ctx = { L, T, blockRef, restInvoker, injektor, errorBuilder,
     responseOptions: sandboxConfig.responseOptions,
+    httpsAgentOptions: sandboxConfig.httpsAgentOptions,
     BusinessError: errorManager.BusinessError
   };
 
@@ -101,7 +102,7 @@ function createService(ctx, storage, serviceName, serviceDescriptor) {
 }
 
 function registerMethod(ctx, target, methodName, methodDescriptor, methodContext) {
-  const { L, T, blockRef, BusinessError, errorBuilder, responseOptions, restInvoker } = ctx;
+  const { L, T, blockRef, BusinessError, errorBuilder, responseOptions, httpsAgentOptions, restInvoker } = ctx;
 
   const box = applyThroughput(ctx, methodDescriptor);
 
@@ -119,6 +120,10 @@ function registerMethod(ctx, target, methodName, methodDescriptor, methodContext
   if (methodDescriptor.enabled === false) return target;
 
   const F = new Transformer(methodDescriptor);
+
+  const httpsAgent = lodash.isEmpty(httpsAgentOptions) ? null : new https.Agent(httpsAgentOptions);
+
+  const methodOptions = { httpsAgent }
 
   Object.defineProperty(target, methodName, {
     get: function() {
@@ -143,7 +148,7 @@ function registerMethod(ctx, target, methodName, methodDescriptor, methodContext
             text: '[${requestId}] Method[${methodName}] arguments: ${methodArgs}'
           }));
 
-          const FA = buildFetchArgs(methodContext, methodDescriptor, methodArgs);
+          const FA = buildFetchArgs(methodContext, methodDescriptor, methodArgs, methodOptions);
           if (FA.error) {
             L.has('error') && L.log('error', T.add({
               requestId, ticketId, methodName
@@ -267,14 +272,15 @@ function registerMethod(ctx, target, methodName, methodDescriptor, methodContext
 
 const FETCH_ARGS_FIELDS = [ "headers", "params", "query" ];
 
-function buildFetchArgs(context = {}, descriptor = {}, methodArgs = {}) {
+function buildFetchArgs(context = {}, descriptor = {}, methodArgs = {}, methodOptions = {}) {
   const opts = lodash.merge({},
     lodash.pick(lodash.get(context, ["arguments", "default"], {}), FETCH_ARGS_FIELDS),
     lodash.pick(lodash.get(descriptor, ["arguments", "default"], {}), FETCH_ARGS_FIELDS),
     lodash.pick(methodArgs, FETCH_ARGS_FIELDS));
   const args = {
     method: descriptor.method,
-    headers: opts.headers || {}
+    headers: opts.headers || {},
+    agent: descriptor.agent || methodOptions.httpsAgent,
   }
   if (!lodash.isString(args.method)) {
     return { error: new Error('invalid-http-method') }
