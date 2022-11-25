@@ -13,7 +13,7 @@ describe('counselor', function() {
     var Counselor, unifyHttpHeaderName;
 
     beforeEach(function() {
-      Counselor = mockit.acquire('counselor');
+      Counselor = mockit.acquire('counselor', { libraryDir: './../lib' });
       unifyHttpHeaderName = mockit.get(Counselor, 'unifyHttpHeaderName');
     });
 
@@ -37,7 +37,7 @@ describe('counselor', function() {
     }
 
     beforeEach(function() {
-      Counselor = mockit.acquire('counselor');
+      Counselor = mockit.acquire('counselor', { libraryDir: './../lib' });
       sanitizeHttpHeaders = mockit.get(Counselor, 'sanitizeHttpHeaders');
     });
 
@@ -207,7 +207,7 @@ describe('counselor', function() {
     }
 
     beforeEach(function() {
-      Counselor = mockit.acquire('counselor');
+      Counselor = mockit.acquire('counselor', { libraryDir: './../lib' });
       mappingLoader = {
         loadMappings: sinon.stub()
       }
@@ -229,6 +229,6 @@ describe('counselor', function() {
 
       false && console.log("newMappings: %s", JSON.stringify(c.mappings, null, 2));
       assert.deepEqual(c.mappings, expected);
+    });
   });
-});
 });

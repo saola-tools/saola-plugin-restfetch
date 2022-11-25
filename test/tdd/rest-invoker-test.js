@@ -7,7 +7,7 @@ var assert = require('liberica').assert;
 var mockit = require('liberica').mockit;
 var path = require('path');
 
-describe.only('rest-invoker', function() {
+describe('rest-invoker', function() {
   var loggingFactory = mockit.createLoggingFactoryMock({ captureMethodCall: false });
   var ctx = {
     L: loggingFactory.getLogger(),

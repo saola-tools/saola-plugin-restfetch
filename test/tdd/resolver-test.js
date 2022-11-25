@@ -29,7 +29,7 @@ describe('resolver', function() {
     var Resolver, init, createService;
 
     beforeEach(function() {
-      Resolver = mockit.acquire('resolver');
+      Resolver = mockit.acquire('resolver', { libraryDir: './../lib' });
       init = mockit.get(Resolver, 'init');
       createService = mockit.stub(Resolver, 'createService');
     });
@@ -67,7 +67,7 @@ describe('resolver', function() {
     var Resolver, createService, registerMethod;
 
     beforeEach(function() {
-      Resolver = mockit.acquire('resolver');
+      Resolver = mockit.acquire('resolver', { libraryDir: './../lib' });
       createService = mockit.get(Resolver, 'createService');
       registerMethod = mockit.stub(Resolver, 'registerMethod');
     });
@@ -106,7 +106,7 @@ describe('resolver', function() {
       blockRef: 'app-restfetch/resolver',
     }
 
-    var Resolver = mockit.acquire('resolver');
+    var Resolver = mockit.acquire('resolver', { libraryDir: './../lib' });
     var applyThroughput = mockit.get(Resolver, 'applyThroughput');
 
     it('should create nothing if the parameters are not provided', function() {
@@ -142,7 +142,7 @@ describe('resolver', function() {
       restInvoker,
     }
 
-    var Resolver = mockit.acquire('resolver');
+    var Resolver = mockit.acquire('resolver', { libraryDir: './../lib' });
     var registerMethod = mockit.get(Resolver, 'registerMethod');
 
     var target = {};
@@ -211,7 +211,7 @@ describe('resolver', function() {
         const fetchArgs = restInvoker.fetch.firstCall.args;
         assert.equal(fetchArgs.length, 3);
         assert.equal(fetchArgs[0], 'http://api.twilio.com/v2/?Accesskey=AABBCCDD&Type=EXT&PhoneNumber=0987654321&Text=Hello%20world');
-        assert.deepEqual(fetchArgs[1], {"method":"GET","headers":{}});
+        assert.deepEqual(fetchArgs[1], {"agent": null, "method":"GET","headers":{}});
       });
     });
 
@@ -275,7 +275,7 @@ describe('resolver', function() {
       }
     }
 
-    var Resolver = mockit.acquire('resolver');
+    var Resolver = mockit.acquire('resolver', { libraryDir: './../lib' });
     var buildFetchArgs = mockit.get(Resolver, 'buildFetchArgs');
 
     it('throw the Error if descriptor.method not found');
@@ -293,6 +293,7 @@ describe('resolver', function() {
       assert.isUndefined(fa.error);
       assert.equal(fa.url, 'https://api.github.com?accessToken=0987654321&type[]=api&type[]=sms');
       assert.deepEqual(fa.args, {
+        agent: undefined,
         method: 'GET',
         headers: {
           "Content-Type": "application/json"
@@ -311,6 +312,7 @@ describe('resolver', function() {
       assert.isUndefined(fa.error);
       assert.equal(fa.url, 'https://api.github.com/repos/devebot/valvekit?accessToken=0987654321&type[]=api&type[]=sms');
       assert.deepEqual(fa.args, {
+        agent: undefined,
         method: 'GET',
         headers: {
           "Content-Type": "application/json"
@@ -336,6 +338,7 @@ describe('resolver', function() {
         fa.args.body = JSON.parse(fa.args.body);
       }
       assert.deepEqual(fa.args, {
+        agent: undefined,
         method: 'GET',
         headers: {
           "Content-Type": "application/json"
@@ -350,7 +353,7 @@ describe('resolver', function() {
   });
 
   describe('getQueryString()', function() {
-    var Resolver = mockit.acquire('resolver');
+    var Resolver = mockit.acquire('resolver', { libraryDir: './../lib' });
     var getQueryString = mockit.get(Resolver, 'getQueryString');
 
     it('Create a query string properly', function() {
@@ -379,7 +382,7 @@ describe('resolver', function() {
     }
     var box = {};
 
-    var Resolver = mockit.acquire('resolver');
+    var Resolver = mockit.acquire('resolver', { libraryDir: './../lib' });
     var getTicket = mockit.get(Resolver, 'getTicket');
 
     it('return default ticket if throughputValve is empty', function() {
