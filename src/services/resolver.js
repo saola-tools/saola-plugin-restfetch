@@ -291,7 +291,11 @@ function buildFetchArgs(context = {}, descriptor = {}, methodArgs = {}, methodOp
       if (!args.headers['Content-Type']) {
         args.headers['Content-Type'] = 'application/json';
       }
-      args.body = JSON.stringify(methodArgs.body);
+      if (lodash.includes(args.headers['Content-Type'], 'multipart/form-data')) {
+        args.body = methodArgs.body;
+      } else {
+        args.body = JSON.stringify(methodArgs.body);
+      }
     } else if (lodash.isString(methodArgs.body)) {
       args.body = methodArgs.body;
     }
