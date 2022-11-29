@@ -6,7 +6,8 @@
   },
   "devDependencies": {
     "devebot-tools": "^0.2.0",
-    "liberica": "^0.4.0"
+    "liberica": "^0.4.0",
+    "mocha": "^10.1.0"
   },
   "author": "devebot",
   "license": "MIT"
