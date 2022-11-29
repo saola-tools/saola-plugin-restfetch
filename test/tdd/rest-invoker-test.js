@@ -2,7 +2,6 @@
 
 var devebot = require('devebot');
 var Bluebird = devebot.require('bluebird');
-var lodash = devebot.require('lodash');
 var assert = require('liberica').assert;
 var mockit = require('liberica').mockit;
 var path = require('path');
@@ -14,7 +13,7 @@ describe('rest-invoker', function() {
     T: loggingFactory.getTracer(),
     blockRef: 'app-restfetch/restInvoker',
   }
-  
+
   describe('this.fetch() method', function() {
     var RestInvoker = mockit.acquire('rest-invoker', {
       moduleHome: path.join(__dirname, '../../lib/utils/')
@@ -46,7 +45,7 @@ describe('rest-invoker', function() {
     it('invoke the doFetch() function in the retry-loop case', async function() {
       var opts = { trappedCode: 201 };
       doFetch.returns(Bluebird.resolve());
-      const result = await restInvoker.fetch(url, args, opts )
+      const result = await restInvoker.fetch(url, args, opts);
       assert.equal(doFetch.callCount, 1);
       const doFetch_1_args = doFetch.args[0];
       // verify the doFetch arguments

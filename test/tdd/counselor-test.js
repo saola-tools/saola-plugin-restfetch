@@ -1,19 +1,20 @@
 'use strict';
 
-var devebot = require('devebot');
-var lodash = devebot.require('lodash');
-var path = require('path');
-var liberica = require('liberica');
-var assert = liberica.assert;
-var mockit = liberica.mockit;
-var sinon = liberica.sinon;
+const devebot = require('devebot');
+const lodash = devebot.require('lodash');
+const liberica = require('liberica');
+const assert = liberica.assert;
+const mockit = liberica.mockit;
+const sinon = liberica.sinon;
+
+const libraryDir = "./../lib";
 
 describe('counselor', function() {
   describe('unifyHttpHeaderName()', function() {
-    var Counselor, unifyHttpHeaderName;
+    let Counselor, unifyHttpHeaderName;
 
     beforeEach(function() {
-      Counselor = mockit.acquire('counselor', { libraryDir: './../lib' });
+      Counselor = mockit.acquire('counselor', { libraryDir });
       unifyHttpHeaderName = mockit.get(Counselor, 'unifyHttpHeaderName');
     });
 
@@ -37,7 +38,7 @@ describe('counselor', function() {
     }
 
     beforeEach(function() {
-      Counselor = mockit.acquire('counselor', { libraryDir: './../lib' });
+      Counselor = mockit.acquire('counselor', { libraryDir });
       sanitizeHttpHeaders = mockit.get(Counselor, 'sanitizeHttpHeaders');
     });
 
@@ -207,7 +208,7 @@ describe('counselor', function() {
     }
 
     beforeEach(function() {
-      Counselor = mockit.acquire('counselor', { libraryDir: './../lib' });
+      Counselor = mockit.acquire('counselor', { libraryDir });
       mappingLoader = {
         loadMappings: sinon.stub()
       }

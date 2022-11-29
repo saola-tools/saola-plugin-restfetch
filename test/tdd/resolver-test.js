@@ -1,12 +1,14 @@
 'use strict';
 
-var devebot = require('devebot');
-var lodash = devebot.require('lodash');
-var assert = require('liberica').assert;
-var mockit = require('liberica').mockit;
-var sinon = require('liberica').sinon;
-var path = require('path');
-var BusinessError = require('app-errorlist').BusinessError;
+const devebot = require('devebot');
+const lodash = devebot.require('lodash');
+const assert = require('liberica').assert;
+const mockit = require('liberica').mockit;
+const sinon = require('liberica').sinon;
+const path = require('path');
+const BusinessError = require('app-errorlist').BusinessError;
+
+const libraryDir = "./../lib";
 
 describe('resolver', function() {
   var app = require(path.join(__dirname, '../app'));
@@ -29,7 +31,7 @@ describe('resolver', function() {
     var Resolver, init, createService;
 
     beforeEach(function() {
-      Resolver = mockit.acquire('resolver', { libraryDir: './../lib' });
+      Resolver = mockit.acquire('resolver', { libraryDir });
       init = mockit.get(Resolver, 'init');
       createService = mockit.stub(Resolver, 'createService');
     });
@@ -67,7 +69,7 @@ describe('resolver', function() {
     var Resolver, createService, registerMethod;
 
     beforeEach(function() {
-      Resolver = mockit.acquire('resolver', { libraryDir: './../lib' });
+      Resolver = mockit.acquire('resolver', { libraryDir });
       createService = mockit.get(Resolver, 'createService');
       registerMethod = mockit.stub(Resolver, 'registerMethod');
     });
@@ -93,8 +95,8 @@ describe('resolver', function() {
 
       createService(ctx, services, serviceName, serviceDescriptor);
       assert.equal(registerMethod.callCount, 2);
-      assert.isTrue(registerMethod.getCall(0).calledWith(ctx, services[serviceName], 'getUser', serviceDescriptor.methods.getUser ));
-      assert.isTrue(registerMethod.getCall(1).calledWith(ctx, services[serviceName], 'getUserID', serviceDescriptor.methods.getUserID ));
+      assert.isTrue(registerMethod.getCall(0).calledWith(ctx, services[serviceName], 'getUser', serviceDescriptor.methods.getUser));
+      assert.isTrue(registerMethod.getCall(1).calledWith(ctx, services[serviceName], 'getUserID', serviceDescriptor.methods.getUserID));
     });
   });
 
@@ -106,7 +108,7 @@ describe('resolver', function() {
       blockRef: 'app-restfetch/resolver',
     }
 
-    var Resolver = mockit.acquire('resolver', { libraryDir: './../lib' });
+    var Resolver = mockit.acquire('resolver', { libraryDir });
     var applyThroughput = mockit.get(Resolver, 'applyThroughput');
 
     it('should create nothing if the parameters are not provided', function() {
@@ -142,7 +144,7 @@ describe('resolver', function() {
       restInvoker,
     }
 
-    var Resolver = mockit.acquire('resolver', { libraryDir: './../lib' });
+    var Resolver = mockit.acquire('resolver', { libraryDir });
     var registerMethod = mockit.get(Resolver, 'registerMethod');
 
     var target = {};
@@ -211,7 +213,7 @@ describe('resolver', function() {
         const fetchArgs = restInvoker.fetch.firstCall.args;
         assert.equal(fetchArgs.length, 3);
         assert.equal(fetchArgs[0], 'http://api.twilio.com/v2/?Accesskey=AABBCCDD&Type=EXT&PhoneNumber=0987654321&Text=Hello%20world');
-        assert.deepEqual(fetchArgs[1], {"agent": null, "method":"GET","headers":{}});
+        assert.deepEqual(fetchArgs[1], { "agent": null, "method": "GET", "headers": {} });
       });
     });
 
@@ -275,7 +277,7 @@ describe('resolver', function() {
       }
     }
 
-    var Resolver = mockit.acquire('resolver', { libraryDir: './../lib' });
+    var Resolver = mockit.acquire('resolver', { libraryDir });
     var buildFetchArgs = mockit.get(Resolver, 'buildFetchArgs');
 
     it('throw the Error if descriptor.method not found');
@@ -353,7 +355,7 @@ describe('resolver', function() {
   });
 
   describe('getQueryString()', function() {
-    var Resolver = mockit.acquire('resolver', { libraryDir: './../lib' });
+    var Resolver = mockit.acquire('resolver', { libraryDir });
     var getQueryString = mockit.get(Resolver, 'getQueryString');
 
     it('Create a query string properly', function() {
@@ -365,10 +367,10 @@ describe('resolver', function() {
     })
 
     it('Create a query string properly', function() {
-      assert.equal(getQueryString({id: "Ae762Btu", color: ["red", "green", "blue"] }),"id=Ae762Btu&color[]=red&color[]=green&color[]=blue");
+      assert.equal(getQueryString({ id: "Ae762Btu", color: ["red", "green", "blue"] }), "id=Ae762Btu&color[]=red&color[]=green&color[]=blue");
       assert.equal(getQueryString([]), '');
-      assert.equal(getQueryString({id:"Abcdk79", mobile: ["Nokia8", "SamSung=S9+", "LG66", "iphone8+"]}),"id=Abcdk79&mobile[]=Nokia8&mobile[]=SamSung%3DS9%2B&mobile[]=LG66&mobile[]=iphone8%2B");
-      assert.equal(getQueryString({numberchar:["2<>3#$#","abcd","THX1138","< >"]}),"numberchar[]=2%3C%3E3%23%24%23&numberchar[]=abcd&numberchar[]=THX1138&numberchar[]=%3C%20%3E");
+      assert.equal(getQueryString({ id: "Abcdk79", mobile: ["Nokia8", "SamSung=S9+", "LG66", "iphone8+"] }), "id=Abcdk79&mobile[]=Nokia8&mobile[]=SamSung%3DS9%2B&mobile[]=LG66&mobile[]=iphone8%2B");
+      assert.equal(getQueryString({ numberchar: ["2<>3#$#", "abcd", "THX1138", "< >"] }), "numberchar[]=2%3C%3E3%23%24%23&numberchar[]=abcd&numberchar[]=THX1138&numberchar[]=%3C%20%3E");
       // console.log("Result[%s]", getQueryString({numberchar:["2<>3#$#","abcd","THX1138","< >"]}));
     });
   });
@@ -382,7 +384,7 @@ describe('resolver', function() {
     }
     var box = {};
 
-    var Resolver = mockit.acquire('resolver', { libraryDir: './../lib' });
+    var Resolver = mockit.acquire('resolver', { libraryDir });
     var getTicket = mockit.get(Resolver, 'getTicket');
 
     it('return default ticket if throughputValve is empty', function() {

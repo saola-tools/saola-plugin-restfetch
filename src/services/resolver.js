@@ -7,6 +7,7 @@ const chores = Devebot.require('chores');
 const lodash = Devebot.require('lodash');
 const schemato = Devebot.require('schemato');
 const validator = new schemato.Validator({ schemaVersion: 4 });
+const https = require('https');
 const valvekit = require('valvekit');
 const pathToRegexp = require('path-to-regexp');
 const RestInvoker = require('../utils/rest-invoker');
