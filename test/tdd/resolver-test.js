@@ -64,7 +64,6 @@ describe('resolver', function() {
 
     var services = {};
     var serviceName = "service_1";
-    var serviceDescriptor = {};
 
     var Resolver, createService, registerMethod;
 
@@ -279,8 +278,6 @@ describe('resolver', function() {
 
     var Resolver = mockit.acquire('resolver', { libraryDir });
     var buildFetchArgs = mockit.get(Resolver, 'buildFetchArgs');
-
-    it('throw the Error if descriptor.method not found');
 
     it('throw the Error if both descriptor.url and descriptor.urlObject not found', function() {
       var fa = buildFetchArgs({}, { method: 'GET' }, methodArgs);
