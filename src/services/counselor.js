@@ -50,12 +50,14 @@ function mappingFileFilter(fileinfo) {
 
 function sanitizeHttpHeaders(mappings) {
   mappings = traverse(mappings).map(function (x) {
-    if (this.key == 'headers') {
-      var headers = this.node;
-      headers = lodash.mapKeys(headers, function(v, k) {
-        return unifyHttpHeaderName(k);
-      });
-      this.update(headers, true); // default: stopHere=false
+    if (this.key == "headers") {
+      let headers = this.node;
+      if (lodash.isPlainObject(headers)) {
+        headers = lodash.mapKeys(headers, function(v, k) {
+          return unifyHttpHeaderName(k);
+        });
+        this.update(headers, true); // default: stopHere=false
+      }
     }
   });
   return mappings;

@@ -68,6 +68,15 @@ describe('counselor', function() {
               }
             }
           },
+          getOrganization: {
+            method: "GET",
+            url: "https://api.github.com/org/:organId",
+            arguments: {
+              default: {
+                headers: null,
+              },
+            },
+          },
           getProjectInfo: {
             method: "GET",
             url: "https://api.github.com/repos/:userOrOrgan/:projectId",
@@ -118,6 +127,11 @@ describe('counselor', function() {
   });
 
   describe('Counselor() constructor', function() {
+    /**
+     * The Counselor constructor will load the fetch targets from the sandboxConfig.mappingStore files,
+     * sanitize the headers in these mappings, then load the custom mappings from the sandboxConfig.mappings
+     * and sanitize the headers in these mappings (if any) too.
+     */
     var Counselor, mappingLoader;
     var loggingFactory = mockit.createLoggingFactoryMock({ captureMethodCall: false });
     var ctx = {
