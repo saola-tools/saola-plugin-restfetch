@@ -29,20 +29,14 @@ describe('counselor', function() {
   });
 
   describe('sanitizeHttpHeaders()', function() {
-    var Counselor, sanitizeHttpHeaders;
-    var loggingFactory = mockit.createLoggingFactoryMock({ captureMethodCall: false });
-    var ctx = {
-      L: loggingFactory.getLogger(),
-      T: loggingFactory.getTracer(),
-      blockRef: 'app-restfetch',
-    }
+    let Counselor, sanitizeHttpHeaders;
 
     beforeEach(function() {
       Counselor = mockit.acquire('counselor', { libraryDir });
       sanitizeHttpHeaders = mockit.get(Counselor, 'sanitizeHttpHeaders');
     });
 
-    var mappings = {
+    const mappings = {
       "restfetch-example/githubApi": {
         enabled: true,
         methods: {
@@ -57,7 +51,7 @@ describe('counselor', function() {
                 }
               },
               transform: function(owner, projectId) {
-                var p = {};
+                const p = {};
                 if (owner != null) {
                   p.owner = owner;
                 }
@@ -108,15 +102,15 @@ describe('counselor', function() {
     }
 
     it('traverse configuration and sanitize the names of HttpHeaders', function() {
-      var newHeaders = {
+      const newHeaders = {
         'Content-Type': 'application/json',
         'X-Access-Token': 'A8Ytr54o0Mn',
       };
-      var expected = lodash.set(lodash.cloneDeep(mappings), [
+      const expected = lodash.set(lodash.cloneDeep(mappings), [
         "restfetch-example/githubApi", "methods", "getListBranches", "arguments", "default", "headers"
       ], newHeaders);
 
-      var newMappings = sanitizeHttpHeaders(mappings);
+      const newMappings = sanitizeHttpHeaders(mappings);
       assert.notDeepEqual(newMappings, mappings);
       assert.deepEqual(newMappings, expected);
 
@@ -132,15 +126,9 @@ describe('counselor', function() {
      * sanitize the headers in these mappings, then load the custom mappings from the sandboxConfig.mappings
      * and sanitize the headers in these mappings (if any) too.
      */
-    var Counselor, mappingLoader;
-    var loggingFactory = mockit.createLoggingFactoryMock({ captureMethodCall: false });
-    var ctx = {
-      L: loggingFactory.getLogger(),
-      T: loggingFactory.getTracer(),
-      blockRef: 'app-restfetch',
-    }
+    let Counselor, mappingLoader;
 
-    var params = {
+    const params = {
       sandboxConfig: {
         mappings: {
           "restfetch-example/githubApi": {
@@ -165,7 +153,7 @@ describe('counselor', function() {
       }
     }
 
-    var mockMappings = {
+    const mockMappings = {
       "restfetch-example/githubApi": {
         enabled: true,
         methods: {
@@ -180,7 +168,7 @@ describe('counselor', function() {
                 }
               },
               transform: function(owner, projectId) {
-                var p = {};
+                const p = {};
                 if (owner != null) {
                   p.owner = owner;
                 }
@@ -231,7 +219,7 @@ describe('counselor', function() {
     });
 
     it('Counselor will merge mappings properly', function() {
-      var expected = lodash.cloneDeep(mockMappings);
+      const expected = lodash.cloneDeep(mockMappings);
       lodash.set(expected, [
         "restfetch-example/githubApi", "methods", "getListBranches", "arguments", "default", "headers"
       ], {
@@ -240,7 +228,7 @@ describe('counselor', function() {
       });
       lodash.set(expected, ["restfetch-example/githubApi", "enabled"], false);
 
-      var c = new Counselor(params);
+      const c = new Counselor(params);
 
       false && console.log("newMappings: %s", JSON.stringify(c.mappings, null, 2));
       assert.deepEqual(c.mappings, expected);
