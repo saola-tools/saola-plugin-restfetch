@@ -1,11 +1,11 @@
-'use strict';
+"use strict";
 
-const Devebot = require('devebot');
-const chores = Devebot.require('chores');
-const lodash = Devebot.require('lodash');
-const traverse = require('traverse');
+const Devebot = require("devebot");
+const chores = Devebot.require("chores");
+const lodash = Devebot.require("lodash");
+const traverse = require("traverse");
 
-function Counselor(params = {}) {
+function Counselor (params = {}) {
   const { sandboxConfig, mappingLoader } = params;
   const mappings = {};
 
@@ -19,7 +19,7 @@ function Counselor(params = {}) {
     lodash.merge(mappings, sanitizeHttpHeaders(sandboxConfig.mappings));
   }
 
-  Object.defineProperty(this, 'mappings', {
+  Object.defineProperty(this, "mappings", {
     get: function() {
       return mappings;
     },
@@ -28,27 +28,27 @@ function Counselor(params = {}) {
 }
 
 Counselor.referenceHash = {
-  mappingLoader: 'devebot/mappingLoader'
+  mappingLoader: "devebot/mappingLoader"
 };
 
 module.exports = Counselor;
 
-function idGenerator(mappingName, fileinfo) {
+function idGenerator (mappingName, fileinfo) {
   if (fileinfo.standalone) {
     return null;
   }
   let serviceName = chores.stringCamelCase(fileinfo.name);
   if (lodash.isString(mappingName) && mappingName.length > 0) {
-    serviceName = mappingName + '/' + serviceName;
+    serviceName = mappingName + "/" + serviceName;
   }
   return serviceName;
 }
 
-function mappingFileFilter(fileinfo) {
-  return fileinfo.ext === '.js';
+function mappingFileFilter (fileinfo) {
+  return fileinfo.ext === ".js";
 }
 
-function sanitizeHttpHeaders(mappings) {
+function sanitizeHttpHeaders (mappings) {
   mappings = traverse(mappings).map(function (x) {
     if (this.key == "headers") {
       let headers = this.node;
@@ -63,8 +63,8 @@ function sanitizeHttpHeaders(mappings) {
   return mappings;
 }
 
-function unifyHttpHeaderName(name) {
+function unifyHttpHeaderName (name) {
   return lodash.capitalize(name.toLowerCase()).replace(/-([a-z])/g, function (m, w) {
-    return '-' + w.toUpperCase();
+    return "-" + w.toUpperCase();
   });
 }

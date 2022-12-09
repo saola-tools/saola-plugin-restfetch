@@ -11,24 +11,24 @@ const BusinessError = require('app-errorlist').BusinessError;
 const libraryDir = "./../lib";
 
 describe('resolver', function() {
-  var app = require(path.join(__dirname, '../app'));
-  var sandboxConfig = lodash.get(app.config, ['sandbox', 'default', 'plugins', 'appRestfetch']);
+  const app = require(path.join(__dirname, '../app'));
+  const sandboxConfig = lodash.get(app.config, ['sandbox', 'default', 'plugins', 'appRestfetch']);
 
   describe('init()', function() {
-    var loggingFactory = mockit.createLoggingFactoryMock({ captureMethodCall: false });
-    var ctx = {
+    const loggingFactory = mockit.createLoggingFactoryMock({ captureMethodCall: false });
+    const ctx = {
       L: loggingFactory.getLogger(),
       T: loggingFactory.getTracer(),
       blockRef: 'app-restfetch',
     }
 
-    var services = {};
-    var mappings = {
+    const services = {};
+    const mappings = {
       "service_1": { "object": "#1" },
       "service_2": { "object": "#2" },
     };
 
-    var Resolver, init, createService;
+    let Resolver, init, createService;
 
     beforeEach(function() {
       Resolver = mockit.acquire('resolver', { libraryDir });
@@ -55,17 +55,17 @@ describe('resolver', function() {
   });
 
   describe('createService()', function() {
-    var loggingFactory = mockit.createLoggingFactoryMock({ captureMethodCall: false });
-    var ctx = {
+    const loggingFactory = mockit.createLoggingFactoryMock({ captureMethodCall: false });
+    const ctx = {
       L: loggingFactory.getLogger(),
       T: loggingFactory.getTracer(),
       blockRef: 'app-restfetch',
     }
 
-    var services = {};
-    var serviceName = "service_1";
+    const services = {};
+    const serviceName = "service_1";
 
-    var Resolver, createService, registerMethod;
+    let Resolver, createService, registerMethod;
 
     beforeEach(function() {
       Resolver = mockit.acquire('resolver', { libraryDir });
@@ -74,14 +74,14 @@ describe('resolver', function() {
     });
 
     it('registerMethod will not be called if serviceDescriptor.enabled ~ false', function() {
-      var serviceDescriptor = { enabled: false };
+      const serviceDescriptor = { enabled: false };
       createService(ctx, services, serviceName, serviceDescriptor);
       assert.equal(registerMethod.callCount, 0);
     });
 
     it('registerMethod will be passed the correct arguments with right order', function() {
-      var serviceName = 'myService';
-      var serviceDescriptor = {
+      const serviceName = 'myService';
+      const serviceDescriptor = {
         methods: {
           getUser: {
             note: 'This is the method#1'
@@ -100,24 +100,24 @@ describe('resolver', function() {
   });
 
   describe('applyThroughput()', function() {
-    var loggingFactory = mockit.createLoggingFactoryMock({ captureMethodCall: false });
-    var ctx = {
+    const loggingFactory = mockit.createLoggingFactoryMock({ captureMethodCall: false });
+    const ctx = {
       L: loggingFactory.getLogger(),
       T: loggingFactory.getTracer(),
       blockRef: 'app-restfetch/resolver',
     }
 
-    var Resolver = mockit.acquire('resolver', { libraryDir });
-    var applyThroughput = mockit.get(Resolver, 'applyThroughput');
+    let Resolver = mockit.acquire('resolver', { libraryDir });
+    let applyThroughput = mockit.get(Resolver, 'applyThroughput');
 
     it('should create nothing if the parameters are not provided', function() {
-      var box = applyThroughput(ctx, {});
+      const box = applyThroughput(ctx, {});
       assert.isNull(box.ticketDeliveryDelay);
       assert.isNull(box.throughputValve);
     });
 
     it('should create the correct semaphore', function() {
-      var box = applyThroughput(ctx, {
+      const box = applyThroughput(ctx, {
         throughputQuota: 2
       });
       assert.isObject(box.throughputValve);
@@ -128,12 +128,12 @@ describe('resolver', function() {
   });
 
   describe('registerMethod()', function() {
-    var loggingFactory = mockit.createLoggingFactoryMock({ captureMethodCall: false });
-    var restInvoker = {
+    const loggingFactory = mockit.createLoggingFactoryMock({ captureMethodCall: false });
+    const restInvoker = {
       fetch: sinon.stub()
     };
-    var errorBuilder = {};
-    var ctx = {
+    const errorBuilder = {};
+    const ctx = {
       L: loggingFactory.getLogger(),
       T: loggingFactory.getTracer(),
       blockRef: 'app-restfetch',
@@ -143,13 +143,13 @@ describe('resolver', function() {
       restInvoker,
     }
 
-    var Resolver = mockit.acquire('resolver', { libraryDir });
-    var registerMethod = mockit.get(Resolver, 'registerMethod');
+    let Resolver = mockit.acquire('resolver', { libraryDir });
+    let registerMethod = mockit.get(Resolver, 'registerMethod');
 
-    var target = {};
-    var methodName = 'sendMail';
-    var methodDescriptor = {};
-    var methodContext = {};
+    const target = {};
+    const methodName = 'sendMail';
+    const methodDescriptor = {};
+    const methodContext = {};
 
     beforeEach(function() {
       restInvoker.fetch = sinon.stub()
@@ -166,8 +166,8 @@ describe('resolver', function() {
     it('skip the retry-loop if the waiting.enabled is false');
 
     it('must invoke the restInvoker.fetch() function', function() {
-      var methodName = 'sendSMS';
-      var methodDescriptor = {
+      const methodName = 'sendSMS';
+      const methodDescriptor = {
         method: "GET",
         url: "http://api.twilio.com/v2/",
         arguments: {
@@ -177,7 +177,7 @@ describe('resolver', function() {
             }
           },
           transform: function(PhoneNumber, Text) {
-            var q = {};
+            const q = {};
             if (PhoneNumber != null) {
               q.PhoneNumber = PhoneNumber;
             }
@@ -188,7 +188,7 @@ describe('resolver', function() {
           }
         }
       }
-      var obj = registerMethod(ctx, target, methodName, methodDescriptor, methodContext);
+      const obj = registerMethod(ctx, target, methodName, methodDescriptor, methodContext);
       assert.equal(obj, target);
       assert.isFunction(obj.sendSMS);
 
@@ -226,14 +226,14 @@ describe('resolver', function() {
   });
 
   describe('buildFetchArgs()', function() {
-    var loggingFactory = mockit.createLoggingFactoryMock({ captureMethodCall: false });
-    var ctx = {
+    const loggingFactory = mockit.createLoggingFactoryMock({ captureMethodCall: false });
+    const ctx = {
       L: loggingFactory.getLogger(),
       T: loggingFactory.getTracer(),
       blockRef: 'app-restfetch',
     }
 
-    var methodContext = {
+    const methodContext = {
       urlObject: {
         protocol: 'https',
         hostname: 'api.github.com',
@@ -250,7 +250,7 @@ describe('resolver', function() {
       }
     }
 
-    var descriptor = {
+    const descriptor = {
       method: "GET",
       arguments: {
         default: {
@@ -265,7 +265,7 @@ describe('resolver', function() {
       }
     }
 
-    var methodArgs = {
+    const methodArgs = {
       params: {
         owner: 'devebot',
         repoId: 'valvekit'
@@ -276,19 +276,19 @@ describe('resolver', function() {
       }
     }
 
-    var Resolver = mockit.acquire('resolver', { libraryDir });
-    var buildFetchArgs = mockit.get(Resolver, 'buildFetchArgs');
+    const Resolver = mockit.acquire('resolver', { libraryDir });
+    const buildFetchArgs = mockit.get(Resolver, 'buildFetchArgs');
 
     it('throw the Error if both descriptor.url and descriptor.urlObject not found', function() {
-      var fa = buildFetchArgs({}, { method: 'GET' }, methodArgs);
+      const fa = buildFetchArgs({}, { method: 'GET' }, methodArgs);
       assert.instanceOf(fa.error, Error);
       assert.isUndefined(fa.url);
       assert.isUndefined(fa.args);
     });
 
     it('build the fetch parameters from the arguments in which the pathname is undefined', function() {
-      var methodDescriptor = lodash.clone(descriptor);
-      var fa = buildFetchArgs(methodContext, methodDescriptor, methodArgs);
+      const methodDescriptor = lodash.clone(descriptor);
+      const fa = buildFetchArgs(methodContext, methodDescriptor, methodArgs);
       assert.isUndefined(fa.error);
       assert.equal(fa.url, 'https://api.github.com?accessToken=0987654321&type[]=api&type[]=sms');
       assert.deepEqual(fa.args, {
@@ -302,12 +302,12 @@ describe('resolver', function() {
     });
 
     it('return the fetch parameters which built from the arguments of a method invocation', function() {
-      var methodDescriptor = lodash.assign({
+      const methodDescriptor = lodash.assign({
         urlObject: {
           pathname: '/repos/:owner/:repoId'
         }
       }, descriptor);
-      var fa = buildFetchArgs(methodContext, methodDescriptor, methodArgs);
+      const fa = buildFetchArgs(methodContext, methodDescriptor, methodArgs);
       assert.isUndefined(fa.error);
       assert.equal(fa.url, 'https://api.github.com/repos/devebot/valvekit?accessToken=0987654321&type[]=api&type[]=sms');
       assert.deepEqual(fa.args, {
@@ -321,16 +321,16 @@ describe('resolver', function() {
     });
 
     it('return the fetch parameters which built from the method arguments and default params of descriptor', function() {
-      var methodDescriptor = lodash.assign({
+      const methodDescriptor = lodash.assign({
         url: "https://api.github.com/repos/:owner/:repoId",
       }, descriptor);
-      var methodArgs = {
+      const methodArgs = {
         body: {
           orderId: 'ed441963-52b3-4981-ab83-6ea9eceb2213',
           name: 'PowerFan-W200'
         }
       }
-      var fa = buildFetchArgs(methodContext, methodDescriptor, methodArgs);
+      const fa = buildFetchArgs(methodContext, methodDescriptor, methodArgs);
       assert.isUndefined(fa.error);
       assert.equal(fa.url, 'https://api.github.com/repos/apporo/app-restfetch?accessToken=1234567890');
       if (lodash.isString(fa.args.body)) {
@@ -352,8 +352,8 @@ describe('resolver', function() {
   });
 
   describe('getQueryString()', function() {
-    var Resolver = mockit.acquire('resolver', { libraryDir });
-    var getQueryString = mockit.get(Resolver, 'getQueryString');
+    const Resolver = mockit.acquire('resolver', { libraryDir });
+    const getQueryString = mockit.get(Resolver, 'getQueryString');
 
     it('Create a query string properly', function() {
       assert.isEmpty(getQueryString({}));
@@ -373,19 +373,19 @@ describe('resolver', function() {
   });
 
   describe('getTicket()/releaseTicket()', function() {
-    var loggingFactory = mockit.createLoggingFactoryMock({ captureMethodCall: false });
-    var ctx = {
+    const loggingFactory = mockit.createLoggingFactoryMock({ captureMethodCall: false });
+    const ctx = {
       L: loggingFactory.getLogger(),
       T: loggingFactory.getTracer(),
       blockRef: 'app-restfetch',
     }
-    var box = {};
+    const box = {};
 
-    var Resolver = mockit.acquire('resolver', { libraryDir });
-    var getTicket = mockit.get(Resolver, 'getTicket');
+    const Resolver = mockit.acquire('resolver', { libraryDir });
+    const getTicket = mockit.get(Resolver, 'getTicket');
 
     it('return default ticket if throughputValve is empty', function() {
-      var ticket = getTicket(ctx);
+      const ticket = getTicket(ctx);
       ticket.then(function(ticketId) {
         assert.isNotNull(ticketId);
         assert.equal(ticketId.length, 22);

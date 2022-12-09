@@ -1,10 +1,10 @@
-'use strict';
+"use strict";
 
-const Devebot = require('devebot');
-const Bluebird = Devebot.require('bluebird');
-const chores = Devebot.require('chores');
-const lodash = Devebot.require('lodash');
-const fetch = require('node-fetch');
+const Devebot = require("devebot");
+const Bluebird = Devebot.require("bluebird");
+const chores = Devebot.require("chores");
+const lodash = Devebot.require("lodash");
+const fetch = require("node-fetch");
 
 fetch.Promise = Bluebird;
 
@@ -16,7 +16,7 @@ function Service (params = {}) {
   const blockRef = chores.getBlockRef(__filename, packageName);
 
   this.fetch = function (url, args, opts) {
-    if ('trappedCode' in opts) {
+    if ("trappedCode" in opts) {
       const { requestId, trappedCode, delay, total = 3, timeout } = opts;
 
       const loopOpts = {
@@ -28,9 +28,9 @@ function Service (params = {}) {
         expiredTime: new Date((new Date()).getTime() + timeout),
       };
 
-      L.has('info') && L.log('info', T.add(loopOpts).toMessage({
-        tags: [ blockRef, 'fetch' ],
-        tmpl: '[${requestId}] Retry if the statusCode ${trappedCode} is trapped, expired at ${expiredTime}'
+      L.has("info") && L.log("info", T.add(loopOpts).toMessage({
+        tags: [ blockRef, "fetch" ],
+        tmpl: "[${requestId}] Retry if the statusCode ${trappedCode} is trapped, expired at ${expiredTime}"
       }));
 
       loopOpts.errorBuilder = errorBuilder;
@@ -44,14 +44,14 @@ function Service (params = {}) {
     }
 
     return p;
-  }
+  };
 }
 
 function doFetch (url, args, exts = {}) {
   let { delay, step, loop, trappedCode, expiredTime, errorBuilder } = exts;
   const now = new Date();
   if (expiredTime && expiredTime < now) {
-    return Bluebird.reject(errorBuilder.newError('RetryRecallIsTimeout', {
+    return Bluebird.reject(errorBuilder.newError("RetryRecallIsTimeout", {
       payload: {
         now: now.toISOString(),
         expiredTime: expiredTime.toISOString()
@@ -59,7 +59,7 @@ function doFetch (url, args, exts = {}) {
     }));
   }
   if (step > loop) {
-    return Bluebird.reject(errorBuilder.newError('RetryRecallOverLimit', {
+    return Bluebird.reject(errorBuilder.newError("RetryRecallOverLimit", {
       payload: { step, loop }
     }));
   }

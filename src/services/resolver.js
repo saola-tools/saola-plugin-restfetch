@@ -1,19 +1,19 @@
-'use strict';
+"use strict";
 
-const Devebot = require('devebot');
-const Bluebird = Devebot.require('bluebird');
-const Injektor = Devebot.require('injektor');
-const chores = Devebot.require('chores');
-const lodash = Devebot.require('lodash');
-const schemato = Devebot.require('schemato');
+const Devebot = require("devebot");
+const Bluebird = Devebot.require("bluebird");
+const Injektor = Devebot.require("injektor");
+const chores = Devebot.require("chores");
+const lodash = Devebot.require("lodash");
+const schemato = Devebot.require("schemato");
 const validator = new schemato.Validator({ schemaVersion: 4 });
-const https = require('https');
-const valvekit = require('valvekit');
-const pathToRegexp = require('path-to-regexp');
-const RestInvoker = require('../utils/rest-invoker');
-const url = require('url');
+const https = require("https");
+const valvekit = require("valvekit");
+const pathToRegexp = require("path-to-regexp");
+const RestInvoker = require("../utils/rest-invoker");
+const url = require("url");
 
-function Service(params = {}) {
+function Service (params = {}) {
   const { loggingFactory, sandboxConfig, packageName } = params;
   const L = loggingFactory.getLogger();
   const T = loggingFactory.getTracer();
@@ -40,12 +40,12 @@ function Service(params = {}) {
 
   this.lookupService = function(serviceName) {
     return services[serviceName];
-  }
+  };
 };
 
 Service.referenceHash = {
-  counselor: 'counselor',
-  errorManager: 'app-errorlist/manager'
+  counselor: "counselor",
+  errorManager: "app-errorlist/manager"
 };
 
 module.exports = Service;
@@ -58,22 +58,22 @@ function applyThroughput (ctx, descriptor = {}, box = {}) {
   }
   box.throughputValve = null;
   if (lodash.isInteger(descriptor.throughputQuota) && descriptor.throughputQuota > 0) {
-    L.has('debug') && L.log('debug', T.add({
+    L.has("debug") && L.log("debug", T.add({
       throughputQuota: descriptor.throughputQuota
     }).toMessage({
-      tags: [ blockRef, 'quota-ticket' ],
-      text: ' - Create throughput valve with the limit: ${throughputQuota}'
+      tags: [ blockRef, "quota-ticket" ],
+      text: " - Create throughput valve with the limit: ${throughputQuota}"
     }));
     box.throughputValve = valvekit.createSemaphore(descriptor.throughputQuota);
   }
   return box;
 }
 
-function init(ctx, services, mappings, enabled) {
+function init (ctx, services, mappings, enabled) {
   const { L, T, blockRef } = ctx;
-  L.has('debug') && L.log('debug', T.add({ enabled }).toMessage({
-    tags: [ blockRef, 'init-mappings' ],
-    text: ' - Initialize the mappings, enabled: ${enabled}'
+  L.has("debug") && L.log("debug", T.add({ enabled }).toMessage({
+    tags: [ blockRef, "init-mappings" ],
+    text: " - Initialize the mappings, enabled: ${enabled}"
   }));
   if (enabled === false) return;
   lodash.forOwn(mappings, function(serviceDescriptor, serviceName) {
@@ -81,16 +81,16 @@ function init(ctx, services, mappings, enabled) {
   });
 }
 
-function createService(ctx, storage, serviceName, serviceDescriptor) {
+function createService (ctx, storage, serviceName, serviceDescriptor) {
   const { L, T, blockRef } = ctx;
   storage = storage || {};
   storage[serviceName] = storage[serviceName] || {};
-  L.has('debug') && L.log('debug', T.add({
+  L.has("debug") && L.log("debug", T.add({
     enabled: serviceDescriptor.enabled !== false,
     serviceName: serviceName
   }).toMessage({
-    tags: [ blockRef, 'register-service' ],
-    text: ' - Initialize the service[${serviceName}], enabled: ${enabled}'
+    tags: [ blockRef, "register-service" ],
+    text: " - Initialize the service[${serviceName}], enabled: ${enabled}"
   }));
   if (serviceDescriptor.enabled !== false) {
     const methodContext = lodash.pick(serviceDescriptor, ["arguments", "urlObject"], {});
@@ -102,7 +102,7 @@ function createService(ctx, storage, serviceName, serviceDescriptor) {
   return storage;
 }
 
-function registerMethod(ctx, target, methodName, methodDescriptor, methodContext) {
+function registerMethod (ctx, target, methodName, methodDescriptor, methodContext) {
   const { L, T, blockRef, BusinessError, errorBuilder, responseOptions, httpsAgentOptions, restInvoker } = ctx;
 
   const box = applyThroughput(ctx, methodDescriptor);
@@ -110,12 +110,12 @@ function registerMethod(ctx, target, methodName, methodDescriptor, methodContext
   target = target || {};
   methodDescriptor = methodDescriptor || {};
 
-  L.has('debug') && L.log('debug', T.add({
+  L.has("debug") && L.log("debug", T.add({
     methodName: methodName,
     enabled: methodDescriptor.enabled !== false
   }).toMessage({
-    tags: [ blockRef, 'register-method' ],
-    text: '   | Initialize method[${methodName}], enabled: ${enabled}'
+    tags: [ blockRef, "register-method" ],
+    text: "   | Initialize method[${methodName}], enabled: ${enabled}"
   }));
 
   if (methodDescriptor.enabled === false) return target;
@@ -124,7 +124,7 @@ function registerMethod(ctx, target, methodName, methodDescriptor, methodContext
 
   const httpsAgent = lodash.isEmpty(httpsAgentOptions) ? null : new https.Agent(httpsAgentOptions);
 
-  const methodOptions = { httpsAgent }
+  const methodOptions = { httpsAgent };
 
   Object.defineProperty(target, methodName, {
     get: function() {
@@ -142,28 +142,28 @@ function registerMethod(ctx, target, methodName, methodDescriptor, methodContext
           }
 
           const requestId = methodArgs.requestId = methodArgs.requestId || T.getLogID();
-          L.has('info') && L.log('info', T.add({
+          L.has("info") && L.log("info", T.add({
             requestId, ticketId, methodName, methodArgs
           }).toMessage({
-            tags: [ blockRef, 'method-rest' ],
-            text: '[${requestId}] Method[${methodName}] arguments: ${methodArgs}'
+            tags: [ blockRef, "method-rest" ],
+            text: "[${requestId}] Method[${methodName}] arguments: ${methodArgs}"
           }));
 
           const FA = buildFetchArgs(methodContext, methodDescriptor, methodArgs, methodOptions);
           if (FA.error) {
-            L.has('error') && L.log('error', T.add({
+            L.has("error") && L.log("error", T.add({
               requestId, ticketId, methodName
             }).toMessage({
-              tags: [ blockRef, 'method-rest' ],
-              text: '[${requestId}] Method[${methodName}] - buildFetchArgs() failed'
+              tags: [ blockRef, "method-rest" ],
+              text: "[${requestId}] Method[${methodName}] - buildFetchArgs() failed"
             }));
             return Bluebird.reject(FA.error);
           } else {
-            L.has('debug') && L.log('debug', T.add({
+            L.has("debug") && L.log("debug", T.add({
               requestId, ticketId, methodName, url: FA.url, headers: FA.args.headers, body: FA.args.body
             }).toMessage({
-              tags: [ blockRef, 'method-rest' ],
-              text: '[${requestId}] Method[${methodName}] is bound to url [${url}], headers: ${headers}, body: ${body}'
+              tags: [ blockRef, "method-rest" ],
+              text: "[${requestId}] Method[${methodName}] is bound to url [${url}], headers: ${headers}, body: ${body}"
             }));
           }
 
@@ -178,7 +178,7 @@ function registerMethod(ctx, target, methodName, methodDescriptor, methodContext
               delay: 1000,
               trappedCode: 202,
             }, lodash.pick(methodDescriptor.waiting, [
-              'total', 'delay', 'trappedCode'
+              "total", "delay", "trappedCode"
             ]));
           }
 
@@ -187,18 +187,18 @@ function registerMethod(ctx, target, methodName, methodDescriptor, methodContext
           // rebuild the Error object if any (node-fetch/response)
           p = p.then(function (res) {
             const HTTP_HEADER_RETURN_CODE = lodash.get(responseOptions, [
-              'returnCode', 'headerName'
-            ], 'X-Return-Code');
+              "returnCode", "headerName"
+            ], "X-Return-Code");
             const returnCode = res.headers.get(HTTP_HEADER_RETURN_CODE);
-            if (returnCode != null && returnCode !== '0' && returnCode !== 0) {
+            if (returnCode != null && returnCode !== "0" && returnCode !== 0) {
               return Bluebird.resolve(res.json()).then(function(body) {
-                const errName = body && body.name || 'UnknownError';
-                const errMessage = body && body.message || 'Error message not found';
+                const errName = body && body.name || "UnknownError";
+                const errMessage = body && body.message || "Error message not found";
                 const errOptions = {
                   payload: (body && body.payload),
                   statusCode: res.status,
                   returnCode: returnCode
-                }
+                };
                 return Bluebird.reject(new BusinessError(errName, errMessage, errOptions));
               });
             }
@@ -207,11 +207,11 @@ function registerMethod(ctx, target, methodName, methodDescriptor, methodContext
 
           // response processing
           p = p.then(function (res) {
-            L.has('info') && L.log('info', T.add({
+            L.has("info") && L.log("info", T.add({
               requestId, ticketId, methodName
             }).toMessage({
-              tags: [ blockRef, 'method-rest' ],
-              text: '[${requestId}] Method[${methodName}] has been done successfully'
+              tags: [ blockRef, "method-rest" ],
+              text: "[${requestId}] Method[${methodName}] has been done successfully"
             }));
             const output = F.transformResponse(res);
             // TODO: validate descriptor here
@@ -220,11 +220,11 @@ function registerMethod(ctx, target, methodName, methodDescriptor, methodContext
 
           // node-fetch error processing
           p = p.catch(function (err) {
-            L.has('warn') && L.log('warn', T.add({
+            L.has("warn") && L.log("warn", T.add({
               requestId, ticketId, methodName, eName: err.name, eMessage: err.message
             }).toMessage({
-              tags: [ blockRef, 'method-rest' ],
-              text: '[${requestId}] Method[${methodName}] has failed, error[${eName}]: ${eMessage}'
+              tags: [ blockRef, "method-rest" ],
+              text: "[${requestId}] Method[${methodName}] has failed, error[${eName}]: ${eMessage}"
             }));
             // Business errors
             if (err instanceof BusinessError) {
@@ -232,7 +232,7 @@ function registerMethod(ctx, target, methodName, methodDescriptor, methodContext
             }
             // timeout from Promise.timeout()
             if (err instanceof Bluebird.TimeoutError) {
-              return Bluebird.reject(errorBuilder.newError('RequestTimeoutOnClient', {
+              return Bluebird.reject(errorBuilder.newError("RequestTimeoutOnClient", {
                 payload: {
                   requestId: requestId,
                   timeout: methodDescriptor.timeout,
@@ -240,8 +240,8 @@ function registerMethod(ctx, target, methodName, methodDescriptor, methodContext
               }));
             }
             // node-fetch errors
-            if (err.name === 'AbortError') {
-              return Bluebird.reject(errorBuilder.newError('RequestAbortedByClient', {
+            if (err.name === "AbortError") {
+              return Bluebird.reject(errorBuilder.newError("RequestAbortedByClient", {
                 payload: {
                   requestId: requestId,
                 }
@@ -264,7 +264,7 @@ function registerMethod(ctx, target, methodName, methodDescriptor, methodContext
         });
 
         return ticket;
-      }
+      };
     },
     set: function(val) {}
   });
@@ -273,7 +273,7 @@ function registerMethod(ctx, target, methodName, methodDescriptor, methodContext
 
 const FETCH_ARGS_FIELDS = [ "headers", "params", "query" ];
 
-function buildFetchArgs(context = {}, descriptor = {}, methodArgs = {}, methodOptions = {}) {
+function buildFetchArgs (context = {}, descriptor = {}, methodArgs = {}, methodOptions = {}) {
   const opts = lodash.merge({},
     lodash.pick(lodash.get(context, ["arguments", "default"], {}), FETCH_ARGS_FIELDS),
     lodash.pick(lodash.get(descriptor, ["arguments", "default"], {}), FETCH_ARGS_FIELDS),
@@ -282,17 +282,17 @@ function buildFetchArgs(context = {}, descriptor = {}, methodArgs = {}, methodOp
     method: descriptor.method,
     headers: opts.headers || {},
     agent: descriptor.agent || methodOptions.httpsAgent,
-  }
+  };
   if (!lodash.isString(args.method)) {
-    return { error: new Error('invalid-http-method') }
+    return { error: new Error("invalid-http-method") };
   }
 
   if (methodArgs.body != null) {
     if (lodash.isObject(methodArgs.body)) {
-      if (!args.headers['Content-Type']) {
-        args.headers['Content-Type'] = 'application/json';
+      if (!args.headers["Content-Type"]) {
+        args.headers["Content-Type"] = "application/json";
       }
-      if (lodash.includes(args.headers['Content-Type'], 'multipart/form-data')) {
+      if (lodash.includes(args.headers["Content-Type"], "multipart/form-data")) {
         args.body = methodArgs.body;
       } else {
         args.body = JSON.stringify(methodArgs.body);
@@ -317,7 +317,7 @@ function buildFetchArgs(context = {}, descriptor = {}, methodArgs = {}, methodOp
   }
 
   if (lodash.isEmpty(urlObj)) {
-    return { error: new Error('invalid-http-url') }
+    return { error: new Error("invalid-http-url") };
   }
 
   if (urlObj.pathname && lodash.isEmpty(customUrl)) {
@@ -330,14 +330,14 @@ function buildFetchArgs(context = {}, descriptor = {}, methodArgs = {}, methodOp
     try {
       urlObj.pathname = descriptor.pathnameRegexp(opts.params);
     } catch (error) {
-      return { error: error }
+      return { error: error };
     }
   }
 
   urlString = url.format(urlObj);
 
   if (lodash.isObject(opts.query) && !lodash.isEmpty(opts.query)) {
-    urlString = urlString + '?' + getQueryString(opts.query);
+    urlString = urlString + "?" + getQueryString(opts.query);
   }
 
   let timeout = descriptor.timeout;
@@ -345,15 +345,15 @@ function buildFetchArgs(context = {}, descriptor = {}, methodArgs = {}, methodOp
   return { url: urlString, args, timeout };
 }
 
-function getQueryString(params) {
+function getQueryString (params) {
   return lodash.keys(params).map(function(k) {
     if (lodash.isArray(params[k])) {
       return params[k].map(function(val) {
-        return `${encodeURIComponent(k)}[]=${encodeURIComponent(val)}`
-      }).join('&')
+        return `${encodeURIComponent(k)}[]=${encodeURIComponent(val)}`;
+      }).join("&");
     }
-    return `${encodeURIComponent(k)}=${encodeURIComponent(params[k])}`
-  }).join('&')
+    return `${encodeURIComponent(k)}=${encodeURIComponent(params[k])}`;
+  }).join("&");
 }
 
 const DEFAULT_TRANSFORMERS = {
@@ -364,21 +364,21 @@ const DEFAULT_TRANSFORMERS = {
     return arguments[0];
   },
   response: function (res) {
-    if (this.format === 'text') {
+    if (this.format === "text") {
       return res.text();
     }
     return res.json();
   },
   exception: null,
-}
+};
 
-function Transformer(descriptor) {
+function Transformer (descriptor) {
   const self = this;
   lodash.forOwn(DEFAULT_TRANSFORMERS, function(transformDefault, name) {
     const transform = lodash.get(descriptor, [name, "transform"]);
     const transformName = "transform" + lodash.capitalize(name);
     self[transformName] = lodash.isFunction(transform) ? transform : transformDefault;
-  })
+  });
 }
 
 const SCHEMA_METHOD_ARGS = {
@@ -447,28 +447,28 @@ const SCHEMA_METHOD_ARGS = {
     }
   },
   "additionalProperties": false
-}
+};
 
-function validateMethodArgs(object) {
+function validateMethodArgs (object) {
   return validator.validate(object, SCHEMA_METHOD_ARGS);
 }
 
-function getTicket(ctx, box = {}) {
+function getTicket (ctx, box = {}) {
   const { L, T, blockRef } = ctx;
   const { throughputValve, ticketDeliveryDelay } = box;
   let ticketId = T.getLogID();
   let ticket;
   if (throughputValve) {
     ticket = new Bluebird(function(onResolved, onRejected) {
-      throughputValve.take(function whenResourceAvailable() {
-        L.has('debug') && L.log('debug', T.add({
+      throughputValve.take(function whenResourceAvailable () {
+        L.has("debug") && L.log("debug", T.add({
           ticketId: ticketId,
           waiting: throughputValve.waiting,
           available: throughputValve.available,
           capacity: throughputValve.capacity
         }).toMessage({
-          tags: [ blockRef, 'lock-valve' ],
-          text: ' - Lock throughput ticket[${ticketId}] - [${waiting}/${available}/${capacity}]'
+          tags: [ blockRef, "lock-valve" ],
+          text: " - Lock throughput ticket[${ticketId}] - [${waiting}/${available}/${capacity}]"
         }));
         onResolved(ticketId);
       });
@@ -479,19 +479,19 @@ function getTicket(ctx, box = {}) {
   return ticketDeliveryDelay ? ticket.delay(ticketDeliveryDelay) : ticket;
 }
 
-function releaseTicket(ctx, box = {}, ticketId) {
+function releaseTicket (ctx, box = {}, ticketId) {
   const { L, T, blockRef } = ctx;
   const { throughputValve } = box;
   if (throughputValve) {
     throughputValve.release();
-    L.has('debug') && L.log('debug', T.add({
+    L.has("debug") && L.log("debug", T.add({
       ticketId: ticketId,
       waiting: throughputValve.waiting,
       available: throughputValve.available,
       capacity: throughputValve.capacity
     }).toMessage({
-      tags: [ blockRef, 'unlock-valve' ],
-      text: ' - Unlock throughput ticket[${ticketId}] - [${waiting}/${available}/${capacity}]'
+      tags: [ blockRef, "unlock-valve" ],
+      text: " - Unlock throughput ticket[${ticketId}] - [${waiting}/${available}/${capacity}]"
     }));
   }
 }
