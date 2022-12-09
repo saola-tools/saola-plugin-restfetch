@@ -1,17 +1,18 @@
 "use strict";
 
+const https = require("https");
+const url = require("url");
+
 const Devebot = require("devebot");
 const Bluebird = Devebot.require("bluebird");
 const Injektor = Devebot.require("injektor");
 const chores = Devebot.require("chores");
 const lodash = Devebot.require("lodash");
 const schemato = Devebot.require("schemato");
-const validator = new schemato.Validator({ schemaVersion: 4 });
-const https = require("https");
+
 const valvekit = require("valvekit");
 const pathToRegexp = require("path-to-regexp");
 const RestInvoker = require("../utils/rest-invoker");
-const url = require("url");
 
 function Service (params = {}) {
   const { loggingFactory, sandboxConfig, packageName } = params;
@@ -25,12 +26,14 @@ function Service (params = {}) {
     errorCodes: sandboxConfig.errorCodes
   });
 
+  const validator = new schemato.Validator({ schemaVersion: 4 });
+
   const restInvoker = new RestInvoker({ errorBuilder, loggingFactory, packageName });
   const injektor = new Injektor(chores.injektorOptions);
 
   const mappings = counselor.mappings;
   const services = {};
-  const ctx = { L, T, blockRef, restInvoker, injektor, errorBuilder,
+  const ctx = { L, T, blockRef, restInvoker, injektor, errorBuilder, validator,
     responseOptions: sandboxConfig.responseOptions,
     httpsAgentOptions: sandboxConfig.httpsAgentOptions,
     BusinessError: errorManager.BusinessError
@@ -103,7 +106,8 @@ function createService (ctx, storage, serviceName, serviceDescriptor) {
 }
 
 function registerMethod (ctx, target, methodName, methodDescriptor, methodContext) {
-  const { L, T, blockRef, BusinessError, errorBuilder, responseOptions, httpsAgentOptions, restInvoker } = ctx;
+  const { L, T, blockRef, BusinessError, errorBuilder, restInvoker, validator } = ctx;
+  const { responseOptions, httpsAgentOptions } = ctx;
 
   const box = applyThroughput(ctx, methodDescriptor);
 
@@ -136,7 +140,7 @@ function registerMethod (ctx, target, methodName, methodDescriptor, methodContex
 
           // transform and validate the methodArgs
           const methodArgs = F.transformArguments(..._arguments);
-          const vResult = validateMethodArgs(methodArgs);
+          const vResult = validator.validate(methodArgs, SCHEMA_METHOD_ARGS);
           if (!vResult.ok) {
             return Bluebird.reject(new Error(JSON.stringify(vResult.errors)));
           }
@@ -278,15 +282,17 @@ function buildFetchArgs (context = {}, descriptor = {}, methodArgs = {}, methodO
     lodash.pick(lodash.get(context, ["arguments", "default"], {}), FETCH_ARGS_FIELDS),
     lodash.pick(lodash.get(descriptor, ["arguments", "default"], {}), FETCH_ARGS_FIELDS),
     lodash.pick(methodArgs, FETCH_ARGS_FIELDS));
+  //
   const args = {
     method: descriptor.method,
     headers: opts.headers || {},
     agent: descriptor.agent || methodOptions.httpsAgent,
   };
+  //
   if (!lodash.isString(args.method)) {
     return { error: new Error("invalid-http-method") };
   }
-
+  //
   if (methodArgs.body != null) {
     if (lodash.isObject(methodArgs.body)) {
       if (!args.headers["Content-Type"]) {
@@ -448,10 +454,6 @@ const SCHEMA_METHOD_ARGS = {
   },
   "additionalProperties": false
 };
-
-function validateMethodArgs (object) {
-  return validator.validate(object, SCHEMA_METHOD_ARGS);
-}
 
 function getTicket (ctx, box = {}) {
   const { L, T, blockRef } = ctx;

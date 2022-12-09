@@ -8,6 +8,9 @@ const sinon = require('liberica').sinon;
 const path = require('path');
 const BusinessError = require('app-errorlist').BusinessError;
 
+const schemato = Devebot.require("schemato");
+const validator = new schemato.Validator({ schemaVersion: 4 });
+
 const libraryDir = "./../lib";
 
 describe('resolver', function() {
@@ -141,6 +144,7 @@ describe('resolver', function() {
       errorBuilder,
       responseOptions: sandboxConfig.responseOptions,
       restInvoker,
+      validator,
     }
 
     let Resolver = mockit.acquire('resolver', { libraryDir });
