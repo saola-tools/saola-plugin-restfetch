@@ -1,39 +1,39 @@
-'use strict';
+"use strict";
 
-const devebot = require('devebot');
-const lodash = devebot.require('lodash');
-const liberica = require('liberica');
+const devebot = require("devebot");
+const lodash = devebot.require("lodash");
+const liberica = require("liberica");
 const assert = liberica.assert;
 const mockit = liberica.mockit;
 const sinon = liberica.sinon;
 
 const libraryDir = "./../lib";
 
-describe('counselor', function() {
-  describe('unifyHttpHeaderName()', function() {
+describe("counselor", function() {
+  describe("unifyHttpHeaderName()", function() {
     let Counselor, unifyHttpHeaderName;
 
     beforeEach(function() {
-      Counselor = mockit.acquire('counselor', { libraryDir });
-      unifyHttpHeaderName = mockit.get(Counselor, 'unifyHttpHeaderName');
+      Counselor = mockit.acquire("counselor", { libraryDir });
+      unifyHttpHeaderName = mockit.get(Counselor, "unifyHttpHeaderName");
     });
 
-    it('unifyHttpHeaderName() will unify the names of HttpHeaders correctly', function() {
-      assert.equal(unifyHttpHeaderName(''), '');
-      assert.equal(unifyHttpHeaderName('CONTENT-TYPE'), 'Content-Type');
-      assert.equal(unifyHttpHeaderName('x-access-token'), 'X-Access-Token');
-      assert.equal(unifyHttpHeaderName('X-ACCESS-TOKEN'), 'X-Access-Token');
-      assert.equal(unifyHttpHeaderName('x-request-id'), 'X-Request-Id');
-      assert.equal(unifyHttpHeaderName('X-Request-ID'), 'X-Request-Id');
+    it("unifyHttpHeaderName() will unify the names of HttpHeaders correctly", function() {
+      assert.equal(unifyHttpHeaderName(""), "");
+      assert.equal(unifyHttpHeaderName("CONTENT-TYPE"), "Content-Type");
+      assert.equal(unifyHttpHeaderName("x-access-token"), "X-Access-Token");
+      assert.equal(unifyHttpHeaderName("X-ACCESS-TOKEN"), "X-Access-Token");
+      assert.equal(unifyHttpHeaderName("x-request-id"), "X-Request-Id");
+      assert.equal(unifyHttpHeaderName("X-Request-ID"), "X-Request-Id");
     });
   });
 
-  describe('sanitizeHttpHeaders()', function() {
+  describe("sanitizeHttpHeaders()", function() {
     let Counselor, sanitizeHttpHeaders;
 
     beforeEach(function() {
-      Counselor = mockit.acquire('counselor', { libraryDir });
-      sanitizeHttpHeaders = mockit.get(Counselor, 'sanitizeHttpHeaders');
+      Counselor = mockit.acquire("counselor", { libraryDir });
+      sanitizeHttpHeaders = mockit.get(Counselor, "sanitizeHttpHeaders");
     });
 
     const mappings = {
@@ -46,8 +46,8 @@ describe('counselor', function() {
             arguments: {
               default: {
                 headers: {
-                  'content-type': 'application/json',
-                  'x-access-token': 'A8Ytr54o0Mn',
+                  "content-type": "application/json",
+                  "x-access-token": "A8Ytr54o0Mn",
                 }
               },
               transform: function(owner, projectId) {
@@ -58,7 +58,7 @@ describe('counselor', function() {
                 if (projectId != null) {
                   p.repoId = projectId;
                 }
-                return { params: p }
+                return { params: p };
               }
             }
           },
@@ -77,8 +77,8 @@ describe('counselor', function() {
             arguments: {
               default: {
                 params: {
-                  userOrOrgan: 'apporo',
-                  projectId: 'app-restfront'
+                  userOrOrgan: "apporo",
+                  projectId: "app-restfront"
                 },
                 query: {}
               },
@@ -99,12 +99,12 @@ describe('counselor', function() {
           }
         }
       }
-    }
+    };
 
-    it('traverse configuration and sanitize the names of HttpHeaders', function() {
+    it("traverse configuration and sanitize the names of HttpHeaders", function() {
       const newHeaders = {
-        'Content-Type': 'application/json',
-        'X-Access-Token': 'A8Ytr54o0Mn',
+        "Content-Type": "application/json",
+        "X-Access-Token": "A8Ytr54o0Mn",
       };
       const expected = lodash.set(lodash.cloneDeep(mappings), [
         "restfetch-example/githubApi", "methods", "getListBranches", "arguments", "default", "headers"
@@ -120,7 +120,7 @@ describe('counselor', function() {
     });
   });
 
-  describe('Counselor() constructor', function() {
+  describe("Counselor() constructor", function() {
     /**
      * The Counselor constructor will load the fetch targets from the sandboxConfig.mappingStore files,
      * sanitize the headers in these mappings, then load the custom mappings from the sandboxConfig.mappings
@@ -138,8 +138,8 @@ describe('counselor', function() {
                 arguments: {
                   default: {
                     headers: {
-                      'CONTENT-TYPE': 'text/plain',
-                      'x-access-Token': '1111-1111',
+                      "CONTENT-TYPE": "text/plain",
+                      "x-access-Token": "1111-1111",
                     }
                   }
                 }
@@ -148,10 +148,10 @@ describe('counselor', function() {
           }
         },
         mappingStore: {
-          'restfetch-example': 'path-to-mappings-folder',
+          "restfetch-example": "path-to-mappings-folder",
         }
       }
-    }
+    };
 
     const mockMappings = {
       "restfetch-example/githubApi": {
@@ -163,8 +163,8 @@ describe('counselor', function() {
             arguments: {
               default: {
                 headers: {
-                  'content-type': 'application/json',
-                  'x-access-token': 'A8Ytr54o0Mn',
+                  "content-type": "application/json",
+                  "x-access-token": "A8Ytr54o0Mn",
                 }
               },
               transform: function(owner, projectId) {
@@ -175,7 +175,7 @@ describe('counselor', function() {
                 if (projectId != null) {
                   p.repoId = projectId;
                 }
-                return { params: p }
+                return { params: p };
               }
             }
           },
@@ -185,8 +185,8 @@ describe('counselor', function() {
             arguments: {
               default: {
                 params: {
-                  userOrOrgan: 'apporo',
-                  projectId: 'app-restfront'
+                  userOrOrgan: "apporo",
+                  projectId: "app-restfront"
                 },
                 query: {}
               },
@@ -207,24 +207,24 @@ describe('counselor', function() {
           }
         }
       }
-    }
+    };
 
     beforeEach(function() {
-      Counselor = mockit.acquire('counselor', { libraryDir });
+      Counselor = mockit.acquire("counselor", { libraryDir });
       mappingLoader = {
         loadMappings: sinon.stub()
-      }
+      };
       mappingLoader.loadMappings.onFirstCall().returns(mockMappings);
       params.mappingLoader = mappingLoader;
     });
 
-    it('Counselor will merge mappings properly', function() {
+    it("Counselor will merge mappings properly", function() {
       const expected = lodash.cloneDeep(mockMappings);
       lodash.set(expected, [
         "restfetch-example/githubApi", "methods", "getListBranches", "arguments", "default", "headers"
       ], {
-        'Content-Type': 'text/plain',
-        'X-Access-Token': '1111-1111',
+        "Content-Type": "text/plain",
+        "X-Access-Token": "1111-1111",
       });
       lodash.set(expected, ["restfetch-example/githubApi", "enabled"], false);
 
