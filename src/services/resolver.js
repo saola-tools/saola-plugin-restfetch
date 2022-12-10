@@ -318,25 +318,46 @@ function buildFetchArgs (context = {}, descriptor = {}, methodArgs = {}, methodO
 
   if (lodash.isString(urlString) && urlString.length > 0) {
     urlObj = url.parse(urlString);
-  } else {
-    urlObj = lodash.merge({}, context.urlObject, descriptor.urlObject);
+  }
+
+  if (urlObj && urlObj.hostname) {
+    urlObj.host = null;
+  }
+
+  if (lodash.isEmpty(customUrl)) {
+    if (urlObj == null || descriptor.mixLinks) {
+      urlObj = lodash.merge(urlObj || {}, context.urlObject, descriptor.urlObject);
+    }
   }
 
   if (lodash.isEmpty(urlObj)) {
     return { error: new Error("invalid-http-url") };
   }
 
-  if (urlObj.pathname && lodash.isEmpty(customUrl)) {
-    if (!descriptor.pathnameRegexp) {
-      descriptor.pathnameRegexp = pathToRegexp.compile(urlObj.pathname);
+  if (lodash.isEmpty(customUrl)) {
+    if (urlObj.pathname) {
+      if (!descriptor.pathnameRegexp) {
+        descriptor.pathnameRegexp = pathToRegexp.compile(urlObj.pathname);
+      }
+    }
+
+    if (descriptor.pathnameRegexp) {
+      try {
+        urlObj.pathname = descriptor.pathnameRegexp(opts.params);
+      } catch (error) {
+        return { error: error };
+      }
     }
   }
 
-  if (descriptor.pathnameRegexp && lodash.isEmpty(customUrl)) {
-    try {
-      urlObj.pathname = descriptor.pathnameRegexp(opts.params);
-    } catch (error) {
-      return { error: error };
+  if (urlObj && urlObj.hostname) {
+    urlObj.host = null;
+  }
+
+  if (descriptor.hideDefaultPort != false) {
+    const defaultPort = DEFAULT_PORT_OF[urlObj.protocol];
+    if (defaultPort && urlObj.port && defaultPort == String(urlObj.port)) {
+      urlObj.port = null;
     }
   }
 
@@ -349,6 +370,30 @@ function buildFetchArgs (context = {}, descriptor = {}, methodArgs = {}, methodO
   let timeout = descriptor.timeout;
 
   return { url: urlString, args, timeout };
+}
+
+function sanitizeUrlObjectHost (urlObject) {
+  if (!lodash.isString(urlObject.host)) {
+    return urlObject;
+  }
+  //
+  let [ hostname, port ] = urlObject.host.split(":");
+  //
+  if (urlObject.hostname && urlObject.hostname != hostname) {
+    throw new Error("urlObject.host is conflicted with urlObject.hostname");
+  }
+  urlObject.hostname = hostname;
+  //
+  let port1 = port && String(port) || DEFAULT_PORT_OF[urlObject.protocol];
+  let port2 = urlObject.port && String(urlObject.port) || DEFAULT_PORT_OF[urlObject.protocol];
+  if (port1 != port2) {
+    throw new Error("urlObject.host is conflicted with urlObject.port");
+  }
+  urlObject.port = urlObject.port || port2;
+  //
+  urlObject.host = null;
+  //
+  return urlObject;
 }
 
 function getQueryString (params) {
@@ -454,6 +499,14 @@ const SCHEMA_METHOD_ARGS = {
   },
   "additionalProperties": false
 };
+
+const DEFAULT_PORT_OF = {
+  "ftp": "21",
+  "http": "80",
+  "https": "443",
+  "ws": "80",
+  "wss": "443",
+}
 
 function getTicket (ctx, box = {}) {
   const { L, T, blockRef } = ctx;

@@ -396,4 +396,99 @@ describe('resolver', function() {
       });
     });
   });
+
+  describe('buildFetchArgs()', function() {
+    const methodContext = {
+      arguments: {
+        default: {
+          headers: {
+            "Content-Type": "application/json"
+          },
+          query: {
+            accessToken: 'abc.xyz:hello-world'
+          }
+        }
+      }
+    }
+
+    const methodDescriptor = {
+      hideDefaultPort: true,
+      method: "GET",
+      arguments: {
+        default: {
+          params: {
+            owner: 'apporo',
+            repoId: 'app-restfetch'
+          },
+          query: {
+            accessToken: '1234567890'
+          }
+        }
+      }
+    }
+
+    const methodArgs = {
+      params: {
+        owner: 'devebot',
+        repoId: 'valvekit'
+      },
+      query: {
+        accessToken: '0987654321',
+        type: ['api', 'sms']
+      }
+    }
+
+    const Resolver = mockit.acquire('resolver', { libraryDir });
+    const buildFetchArgs = mockit.get(Resolver, 'buildFetchArgs');
+
+    const samples = [
+      {
+        input: {
+          context: methodContext,
+          descriptor: lodash.assign({
+            mixLinks: true,
+            url: "http://example.com/api/v1",
+            urlObject: {
+              protocol: 'https',
+              hostname: 'api.github.com',
+              pathname: '/repos/:owner/:repoId',
+            }
+          }, methodDescriptor),
+          args: methodArgs,
+        },
+        result: {
+          url: "https://api.github.com/repos/devebot/valvekit?accessToken=0987654321&type[]=api&type[]=sms",
+        }
+      },
+      {
+        input: {
+          context: methodContext,
+          descriptor: lodash.assign({
+            mixLinks: true,
+            url: "http://example.com/api/v1",
+            urlObject: {
+              protocol: 'https',
+              hostname: 'api.github.com',
+              pathname: '/repos/:owner/:repoId',
+              port: '443',
+            }
+          }, methodDescriptor),
+          args: methodArgs,
+        },
+        result: {
+          url: "https://api.github.com/repos/devebot/valvekit?accessToken=0987654321&type[]=api&type[]=sms",
+        }
+      }
+    ]
+
+    for (let [index, sample] of samples.entries()) {
+      it('build the link testcase #' + index, function() {
+        const { input, result } = sample;
+        const fa = buildFetchArgs(input.context, input.descriptor, input.args);
+        //
+        assert.isUndefined(fa.error);
+        assert.equal(fa.url, result.url);
+      });
+    }
+  });
 });
