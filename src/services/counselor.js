@@ -5,9 +5,11 @@ const chores = Devebot.require("chores");
 const lodash = Devebot.require("lodash");
 const traverse = require("traverse");
 
+const { sanitizeUrlObject } = require("../utils/url-toolkit");
+
 function Counselor (params = {}) {
   const { sandboxConfig, mappingLoader } = params;
-  const mappings = {};
+  let mappings = {};
 
   const mappingFromStore = mappingLoader.loadMappings(sandboxConfig.mappingStore, {
     fileFilter: mappingFileFilter,
@@ -18,6 +20,8 @@ function Counselor (params = {}) {
   if (lodash.isObject(sandboxConfig.mappings)) {
     lodash.merge(mappings, sanitizeHttpHeaders(sandboxConfig.mappings));
   }
+
+  mappings = sanitizeMappings(mappings);
 
   Object.defineProperty(this, "mappings", {
     get: function() {
@@ -76,7 +80,7 @@ function sanitizeMappings (mappings) {
       let urlObject = this.node;
       if (lodash.isPlainObject(urlObject)) {
         try {
-          urlObject = sanitizeUrlObjectHost(urlObject);
+          urlObject = sanitizeUrlObject(urlObject);
           this.update(urlObject, true); // default: stopHere=false
         } catch (error) {
           errors.push({
@@ -88,28 +92,4 @@ function sanitizeMappings (mappings) {
     }
   });
   return mappings;
-}
-
-function sanitizeUrlObjectHost (urlObject) {
-  if (!lodash.isString(urlObject.host)) {
-    return urlObject;
-  }
-  //
-  let [ hostname, port ] = urlObject.host.split(":");
-  //
-  if (urlObject.hostname && urlObject.hostname != hostname) {
-    throw new Error("urlObject.host is conflicted with urlObject.hostname");
-  }
-  urlObject.hostname = hostname;
-  //
-  let port1 = port && String(port) || DEFAULT_PORT_OF[urlObject.protocol];
-  let port2 = urlObject.port && String(urlObject.port) || DEFAULT_PORT_OF[urlObject.protocol];
-  if (port1 != port2) {
-    throw new Error("urlObject.host is conflicted with urlObject.port");
-  }
-  urlObject.port = urlObject.port || port2;
-  //
-  urlObject.host = null;
-  //
-  return urlObject;
 }

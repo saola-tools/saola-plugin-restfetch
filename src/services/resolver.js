@@ -12,7 +12,9 @@ const schemato = Devebot.require("schemato");
 
 const valvekit = require("valvekit");
 const pathToRegexp = require("path-to-regexp");
+
 const RestInvoker = require("../utils/rest-invoker");
+const { cleanDefaultPort } = require("../utils/url-toolkit");
 
 function Service (params = {}) {
   const { loggingFactory, sandboxConfig, packageName } = params;
@@ -355,10 +357,7 @@ function buildFetchArgs (context = {}, descriptor = {}, methodArgs = {}, methodO
   }
 
   if (descriptor.hideDefaultPort != false) {
-    const defaultPort = DEFAULT_PORT_OF[urlObj.protocol];
-    if (defaultPort && urlObj.port && defaultPort == String(urlObj.port)) {
-      urlObj.port = null;
-    }
+    urlObj = cleanDefaultPort(urlObj);
   }
 
   urlString = url.format(urlObj);
@@ -475,14 +474,6 @@ const SCHEMA_METHOD_ARGS = {
   },
   "additionalProperties": false
 };
-
-const DEFAULT_PORT_OF = {
-  "ftp": "21",
-  "http": "80",
-  "https": "443",
-  "ws": "80",
-  "wss": "443",
-}
 
 function getTicket (ctx, box = {}) {
   const { L, T, blockRef } = ctx;
