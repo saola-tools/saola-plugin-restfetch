@@ -68,3 +68,48 @@ function unifyHttpHeaderName (name) {
     return "-" + w.toUpperCase();
   });
 }
+
+function sanitizeMappings (mappings) {
+  const errors = [];
+  mappings = traverse(mappings).map(function (x) {
+    if (this.key == "urlObject") {
+      let urlObject = this.node;
+      if (lodash.isPlainObject(urlObject)) {
+        try {
+          urlObject = sanitizeUrlObjectHost(urlObject);
+          this.update(urlObject, true); // default: stopHere=false
+        } catch (error) {
+          errors.push({
+            path: this.path,
+            error: error
+          });
+        }
+      }
+    }
+  });
+  return mappings;
+}
+
+function sanitizeUrlObjectHost (urlObject) {
+  if (!lodash.isString(urlObject.host)) {
+    return urlObject;
+  }
+  //
+  let [ hostname, port ] = urlObject.host.split(":");
+  //
+  if (urlObject.hostname && urlObject.hostname != hostname) {
+    throw new Error("urlObject.host is conflicted with urlObject.hostname");
+  }
+  urlObject.hostname = hostname;
+  //
+  let port1 = port && String(port) || DEFAULT_PORT_OF[urlObject.protocol];
+  let port2 = urlObject.port && String(urlObject.port) || DEFAULT_PORT_OF[urlObject.protocol];
+  if (port1 != port2) {
+    throw new Error("urlObject.host is conflicted with urlObject.port");
+  }
+  urlObject.port = urlObject.port || port2;
+  //
+  urlObject.host = null;
+  //
+  return urlObject;
+}

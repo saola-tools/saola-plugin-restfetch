@@ -372,30 +372,6 @@ function buildFetchArgs (context = {}, descriptor = {}, methodArgs = {}, methodO
   return { url: urlString, args, timeout };
 }
 
-function sanitizeUrlObjectHost (urlObject) {
-  if (!lodash.isString(urlObject.host)) {
-    return urlObject;
-  }
-  //
-  let [ hostname, port ] = urlObject.host.split(":");
-  //
-  if (urlObject.hostname && urlObject.hostname != hostname) {
-    throw new Error("urlObject.host is conflicted with urlObject.hostname");
-  }
-  urlObject.hostname = hostname;
-  //
-  let port1 = port && String(port) || DEFAULT_PORT_OF[urlObject.protocol];
-  let port2 = urlObject.port && String(urlObject.port) || DEFAULT_PORT_OF[urlObject.protocol];
-  if (port1 != port2) {
-    throw new Error("urlObject.host is conflicted with urlObject.port");
-  }
-  urlObject.port = urlObject.port || port2;
-  //
-  urlObject.host = null;
-  //
-  return urlObject;
-}
-
 function getQueryString (params) {
   return lodash.keys(params).map(function(k) {
     if (lodash.isArray(params[k])) {
