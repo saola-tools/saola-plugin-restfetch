@@ -6,13 +6,13 @@ const assert = require("liberica").assert;
 const mockit = require("liberica").mockit;
 const path = require("path");
 
+const moduleHome = path.join(__dirname, "../../lib/utils/");
+
 describe("utils:rest-invoker", function() {
   const loggingFactory = mockit.createLoggingFactoryMock({ captureMethodCall: false });
 
   describe("this.fetch() method", function() {
-    let RestInvoker = mockit.acquire("rest-invoker", {
-      moduleHome: path.join(__dirname, "../../lib/utils/")
-    });
+    let RestInvoker = mockit.acquire("rest-invoker", { moduleHome });
     let restInvoker;
     let doFetch;
     let fetch;

@@ -27,7 +27,7 @@
     "testOnly": "cd test && npm exec -- mocha --recursive ./**/*-test.js",
     "test": "npm run testOnly",
     "prepublishOnly": "npm run check-silent && npm run clean && NODE_ENV=${DEVEBOT_NODE_ENV:-production} npm run build",
-    "coverage": "npm exec -- nyc --reporter=text --reporter=html --report-dir=./.converage npm run testOnly",
+    "coverage": "npm exec -- nyc --reporter=text --reporter=html --report-dir=./.coverage npm run testOnly",
     "verify": "npm run prepublishOnly && npm run testOnly"
   },
   "engines": {
