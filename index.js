@@ -1,3 +1,3 @@
-module.exports = require('devebot').registerLayerware(__dirname, [
-  'app-errorlist'
+module.exports = require("devebot").registerLayerware(__dirname, [
+  "app-errorlist"
 ], []);

@@ -1,5 +1,7 @@
-node_modules
 /.idea
+/.converage
+/.nyc_output
 /lib
 /log
+node_modules
 package-lock.json

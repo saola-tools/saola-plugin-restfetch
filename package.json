@@ -17,15 +17,18 @@
     "manifest.js"
   ],
   "scripts": {
-    "bootstrap": "npm install && cd test && npm install",
-    "clean-modules": "rm -rf ./node_modules && rm ./package-lock.json",
-    "build": "npm exec -- babel ./src -d ./lib",
     "clean": "rm -rf ./lib",
-    "prepublish": "npm run clean && cross-env NODE_ENV=${DEVEBOT_NODE_ENV:-production} npm run build",
-    "pretest": "npm run clean && cross-env NODE_ENV=${DEVEBOT_NODE_ENV:-test} npm run build",
-    "test": "cd test && npm exec -- mocha --recursive ./**/*-test.js",
-    "verify": "npm run prepublish && npm run test",
-    "eslint": "npm exec -- eslint ./src/ --quiet"
+    "clean-modules": "rm -rf ./node_modules && rm ./package-lock.json",
+    "bootstrap": "npm install --ignore-scripts; cd test && npm install --ignore-scripts",
+    "build": "npm exec -- babel ./src -d ./lib",
+    "check": "npm exec -- eslint ./src index.js",
+    "check-silent": "npm exec -- eslint --quiet ./src index.js",
+    "pretest": "npm run check-silent && npm run clean && NODE_ENV=${DEVEBOT_NODE_ENV:-test} npm run build",
+    "testOnly": "cd test && npm exec -- mocha --recursive ./**/*-test.js",
+    "test": "npm run testOnly",
+    "prepublishOnly": "npm run check-silent && npm run clean && NODE_ENV=${DEVEBOT_NODE_ENV:-production} npm run build",
+    "coverage": "npm exec -- nyc --reporter=text --reporter=html --report-dir=./.converage npm run testOnly",
+    "verify": "npm run prepublishOnly && npm run testOnly"
   },
   "engines": {
     "node": ">=12"
@@ -51,7 +54,7 @@
     "@babel/core": "^7.20.2",
     "@babel/preset-env": "^7.20.2",
     "babel-plugin-minify-mangle-names": "^0.5.1",
-    "cross-env": "^5.2.0",
+    "cross-env": "^7.0.3",
     "eslint": "^5.16.0",
     "eslint-config-promise": "^2.0.2",
     "eslint-config-standard": "^12.0.0",
@@ -59,6 +62,7 @@
     "eslint-plugin-node": "^7.0.1",
     "eslint-plugin-promise": "^4.0.1",
     "eslint-plugin-security": "^1.5.0",
-    "eslint-plugin-standard": "^4.0.0"
+    "eslint-plugin-standard": "^4.0.0",
+    "nyc": "^15.1.0"
   }
 }
