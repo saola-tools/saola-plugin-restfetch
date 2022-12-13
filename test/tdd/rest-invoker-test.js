@@ -6,7 +6,7 @@ const assert = require("liberica").assert;
 const mockit = require("liberica").mockit;
 const path = require("path");
 
-describe("rest-invoker", function() {
+describe("utils:rest-invoker", function() {
   const loggingFactory = mockit.createLoggingFactoryMock({ captureMethodCall: false });
 
   describe("this.fetch() method", function() {

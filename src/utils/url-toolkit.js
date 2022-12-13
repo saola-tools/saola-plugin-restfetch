@@ -14,29 +14,29 @@ const DEFAULT_PORT_OF = {
 function sanitizeUrlObject (urlObject, more) {
   const { strict } = more || {};
   //
-  if (!lodash.isString(urlObject.host)) {
-    return urlObject;
-  }
+  const UrlObjectError = lodash.get(more, "UrlObjectError", Error);
   //
-  let [ hostname, port ] = urlObject.host.split(":");
-  //
-  if (urlObject.hostname && urlObject.hostname != hostname) {
-    if (strict) {
-      throw new Error("urlObject.host is conflicted with urlObject.hostname");
+  if (lodash.isString(urlObject.host)) {
+    let [ hostname, port ] = urlObject.host.split(":");
+    //
+    if (urlObject.hostname && urlObject.hostname != hostname) {
+      if (strict) {
+        throw new UrlObjectError("urlObject.host is conflicted with urlObject.hostname");
+      }
     }
-  }
-  urlObject.hostname = hostname;
-  //
-  let port1 = port && String(port) || DEFAULT_PORT_OF[urlObject.protocol];
-  let port2 = urlObject.port && String(urlObject.port) || DEFAULT_PORT_OF[urlObject.protocol];
-  if (port1 != port2) {
-    if (strict) {
-      throw new Error("urlObject.host is conflicted with urlObject.port");
+    urlObject.hostname = urlObject.hostname || hostname;
+    //
+    let port1 = port && String(port) || DEFAULT_PORT_OF[urlObject.protocol];
+    let port2 = urlObject.port && String(urlObject.port) || DEFAULT_PORT_OF[urlObject.protocol];
+    if (port1 != port2) {
+      if (strict) {
+        throw new UrlObjectError("urlObject.host is conflicted with urlObject.port");
+      }
     }
+    urlObject.port = urlObject.port && String(urlObject.port) || port2;
+    //
+    urlObject.host = null;
   }
-  urlObject.port = urlObject.port || port2;
-  //
-  urlObject.host = null;
   //
   return urlObject;
 }
