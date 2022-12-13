@@ -35,7 +35,7 @@ function Service (params = {}) {
 
       loopOpts.errorBuilder = errorBuilder;
 
-      return doFetch(url, args, loopOpts);
+      return loopFetch(fetch, url, args, loopOpts);
     }
 
     let p = fetch(url, args);
@@ -47,7 +47,7 @@ function Service (params = {}) {
   };
 }
 
-function doFetch (url, args, exts = {}) {
+function loopFetch (fetch, url, args, exts = {}) {
   let { delay, step, loop, trappedCode, expiredTime, errorBuilder } = exts;
   const now = new Date();
   if (expiredTime && expiredTime < now) {
@@ -74,7 +74,7 @@ function doFetch (url, args, exts = {}) {
         next = next.delay(delay);
       }
       return next.then(function() {
-        return doFetch(url, args, exts);
+        return loopFetch(fetch, url, args, exts);
       });
     }
     return res;

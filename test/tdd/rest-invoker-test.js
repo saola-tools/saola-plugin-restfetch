@@ -14,7 +14,6 @@ describe("utils:rest-invoker", function() {
   describe("this.fetch() method", function() {
     let RestInvoker = mockit.acquire("rest-invoker", { moduleHome });
     let restInvoker;
-    let doFetch;
     let fetch;
 
     let url = "http://www.url.com";
@@ -36,7 +35,7 @@ describe("utils:rest-invoker", function() {
       return result;
     });
 
-    it("invoke the doFetch() function in the retry-loop case", async function() {
+    it("invoke the loopFetch() function in the retry-loop case", async function() {
       const opts = { trappedCode: 201 };
       fetch.returns(Bluebird.resolve({ status: 200 }));
       const result = await restInvoker.fetch(url, args, opts);
