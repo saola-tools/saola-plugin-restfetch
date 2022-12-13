@@ -8,6 +8,15 @@ const path = require("path");
 
 const moduleHome = path.join(__dirname, "../../lib/utils/");
 
+const errorBuilder = {
+  newError: function(name, options) {
+    const err = new Error(name);
+    err.name = name;
+    err.payload = options.payload;
+    return err;
+  }
+}
+
 describe("utils:rest-invoker", function() {
   const loggingFactory = mockit.createLoggingFactoryMock({ captureMethodCall: false });
 
@@ -22,7 +31,7 @@ describe("utils:rest-invoker", function() {
     beforeEach(function() {
       fetch = mockit.stub(RestInvoker, "fetch");
       restInvoker = new RestInvoker({
-        errorBuilder: null,
+        errorBuilder: errorBuilder,
         loggingFactory: loggingFactory,
         packageName: "app-restfetch"
       });
@@ -46,6 +55,51 @@ describe("utils:rest-invoker", function() {
       assert.equal(fetchArgs0[0], url);
       assert.deepEqual(fetchArgs0[1], args);
       return result;
+    });
+
+    it("loopFetch() exceeds the retry limit must return the error: RetryRecallOverLimit", async function() {
+      const opts = {
+        total: 3,
+        trappedCode: 201
+      };
+      //
+      fetch.onCall(0).returns(Bluebird.resolve({ status: 201 }));
+      fetch.onCall(1).returns(Bluebird.resolve({ status: 201 }));
+      fetch.onCall(2).returns(Bluebird.resolve({ status: 201 }));
+      fetch.onCall(3).returns(Bluebird.resolve({ status: 200 }));
+      //
+      try {
+        const result = await restInvoker.fetch(url, args, opts);
+        assert.fail("restInvoker.fetch() must throw an error");
+      } catch (err) {
+        false && console.log(JSON.stringify(err.payload));
+        assert.equal(err.name, "RetryRecallOverLimit");
+        assert.deepEqual(err.payload, {"step":4,"loop":3});
+      }
+    });
+
+    it("loopFetch() exceeds the expired time must return the error: RetryRecallIsTimeout", async function() {
+      const opts = {
+        total: 6,
+        delay: 5,
+        timeout: 15,
+        trappedCode: 201
+      };
+      //
+      fetch.onCall(0).returns(Bluebird.resolve({ status: 201 }));
+      fetch.onCall(1).returns(Bluebird.resolve({ status: 201 }));
+      fetch.onCall(2).returns(Bluebird.resolve({ status: 201 }));
+      fetch.onCall(3).returns(Bluebird.resolve({ status: 201 }));
+      fetch.onCall(4).returns(Bluebird.resolve({ status: 201 }));
+      fetch.onCall(5).returns(Bluebird.resolve({ status: 200 }));
+      //
+      try {
+        const result = await restInvoker.fetch(url, args, opts);
+        assert.fail("restInvoker.fetch() must throw an error");
+      } catch (err) {
+        false && console.log(JSON.stringify(err.payload));
+        assert.equal(err.name, "RetryRecallIsTimeout");
+      }
     });
   });
 });

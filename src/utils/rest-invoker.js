@@ -48,7 +48,7 @@ function Service (params = {}) {
 }
 
 function loopFetch (fetch, url, args, exts = {}) {
-  let { delay, step, loop, trappedCode, expiredTime, errorBuilder } = exts;
+  let { step, loop, delay, trappedCode, expiredTime, errorBuilder } = exts;
   const now = new Date();
   if (expiredTime && expiredTime < now) {
     return Bluebird.reject(errorBuilder.newError("RetryRecallIsTimeout", {
@@ -68,7 +68,7 @@ function loopFetch (fetch, url, args, exts = {}) {
 
   p = p.then(function (res) {
     if (matchTrappedCodes(trappedCode, res.status)) {
-      step = step + 1;
+      exts.step = exts.step + 1;
       let next = Bluebird.resolve();
       if (delay > 0) {
         next = next.delay(delay);
