@@ -27,7 +27,7 @@ function Counselor (params = {}) {
     get: function() {
       return mappings;
     },
-    set: function(val) {}
+    set: function(_) {}
   });
 }
 
@@ -53,11 +53,11 @@ function mappingFileFilter (fileinfo) {
 }
 
 function sanitizeHttpHeaders (mappings) {
-  mappings = traverse(mappings).map(function (x) {
+  mappings = traverse(mappings).map(function (_) {
     if (this.key == "headers") {
       let headers = this.node;
       if (lodash.isPlainObject(headers)) {
-        headers = lodash.mapKeys(headers, function(v, k) {
+        headers = lodash.mapKeys(headers, function(_, k) {
           return unifyHttpHeaderName(k);
         });
         this.update(headers, true); // default: stopHere=false
@@ -68,14 +68,14 @@ function sanitizeHttpHeaders (mappings) {
 }
 
 function unifyHttpHeaderName (name) {
-  return lodash.capitalize(name.toLowerCase()).replace(/-([a-z])/g, function (m, w) {
+  return lodash.capitalize(name.toLowerCase()).replace(/-([a-z])/g, function (_, w) {
     return "-" + w.toUpperCase();
   });
 }
 
 function sanitizeMappings (mappings) {
   const errors = [];
-  mappings = traverse(mappings).map(function (x) {
+  mappings = traverse(mappings).map(function (_) {
     if (this.key == "urlObject") {
       let urlObject = this.node;
       if (lodash.isPlainObject(urlObject)) {

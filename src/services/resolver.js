@@ -44,9 +44,9 @@ function Service (params = {}) {
   init(ctx, services, mappings, sandboxConfig.enabled !== false);
 
   this.lookupService = function(serviceName) {
-    return services[serviceName];
+    return lodash.get(services, serviceName);
   };
-};
+}
 
 Service.referenceHash = {
   counselor: "counselor",
@@ -89,7 +89,10 @@ function init (ctx, services, mappings, enabled) {
 function createService (ctx, storage, serviceName, serviceDescriptor) {
   const { L, T, blockRef } = ctx;
   storage = storage || {};
-  storage[serviceName] = storage[serviceName] || {};
+  const target = lodash.get(storage, serviceName, {});
+  if (!lodash.has(storage, serviceName)) {
+    lodash.set(storage, serviceName, target);
+  }
   L.has("debug") && L.log("debug", T.add({
     enabled: serviceDescriptor.enabled !== false,
     serviceName: serviceName
@@ -101,7 +104,7 @@ function createService (ctx, storage, serviceName, serviceDescriptor) {
     const methodContext = lodash.pick(serviceDescriptor, ["arguments", "urlObject"], {});
     const methods = serviceDescriptor.methods || {};
     lodash.forOwn(methods, function(methodDescriptor, methodName) {
-      registerMethod(ctx, storage[serviceName], methodName, methodDescriptor, methodContext);
+      registerMethod(ctx, target, methodName, methodDescriptor, methodContext);
     });
   }
   return storage;
@@ -272,7 +275,7 @@ function registerMethod (ctx, target, methodName, methodDescriptor, methodContex
         return ticket;
       };
     },
-    set: function(val) {}
+    set: function(_) {}
   });
   return target;
 }
@@ -481,7 +484,7 @@ function getTicket (ctx, box = {}) {
   let ticketId = T.getLogID();
   let ticket;
   if (throughputValve) {
-    ticket = new Bluebird(function(onResolved, onRejected) {
+    ticket = new Bluebird(function(onResolved, _) {
       throughputValve.take(function whenResourceAvailable () {
         L.has("debug") && L.log("debug", T.add({
           ticketId: ticketId,

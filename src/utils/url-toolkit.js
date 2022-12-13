@@ -11,7 +11,9 @@ const DEFAULT_PORT_OF = {
   "wss": "443",
 };
 
-function sanitizeUrlObject (urlObject) {
+function sanitizeUrlObject (urlObject, more) {
+  const { strict } = more || {};
+  //
   if (!lodash.isString(urlObject.host)) {
     return urlObject;
   }
@@ -19,14 +21,18 @@ function sanitizeUrlObject (urlObject) {
   let [ hostname, port ] = urlObject.host.split(":");
   //
   if (urlObject.hostname && urlObject.hostname != hostname) {
-    throw new Error("urlObject.host is conflicted with urlObject.hostname");
+    if (strict) {
+      throw new Error("urlObject.host is conflicted with urlObject.hostname");
+    }
   }
   urlObject.hostname = hostname;
   //
   let port1 = port && String(port) || DEFAULT_PORT_OF[urlObject.protocol];
   let port2 = urlObject.port && String(urlObject.port) || DEFAULT_PORT_OF[urlObject.protocol];
   if (port1 != port2) {
-    throw new Error("urlObject.host is conflicted with urlObject.port");
+    if (strict) {
+      throw new Error("urlObject.host is conflicted with urlObject.port");
+    }
   }
   urlObject.port = urlObject.port || port2;
   //
