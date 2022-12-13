@@ -21,7 +21,6 @@ describe("utils:rest-invoker", function() {
     let args = {};
 
     beforeEach(function() {
-      doFetch = mockit.stub(RestInvoker, "doFetch");
       fetch = mockit.stub(RestInvoker, "fetch");
       restInvoker = new RestInvoker({
         errorBuilder: null,
@@ -39,29 +38,14 @@ describe("utils:rest-invoker", function() {
 
     it("invoke the doFetch() function in the retry-loop case", async function() {
       const opts = { trappedCode: 201 };
-      doFetch.returns(Bluebird.resolve());
+      fetch.returns(Bluebird.resolve({ status: 200 }));
       const result = await restInvoker.fetch(url, args, opts);
-      assert.equal(doFetch.callCount, 1);
-      const doFetch_1_args = doFetch.args[0];
-      // verify the doFetch arguments
-      assert.equal(doFetch_1_args.length, 3);
-      assert.equal(doFetch_1_args[0], url);
-      assert.deepEqual(doFetch_1_args[1], args);
-      const loopOpts = doFetch_1_args[2];
-      assert.include(loopOpts, {
-        step: 1,
-        loop: 3,
-        trappedCode: 201
-      });
-      assert.deepEqual(Object.keys(loopOpts), [
-        "requestId",
-        "step",
-        "loop",
-        "delay",
-        "trappedCode",
-        "expiredTime",
-        "errorBuilder"
-      ]);
+      assert.equal(fetch.callCount, 1);
+      const fetchArgs0 = fetch.args[0];
+      // verify the fetch arguments
+      assert.equal(fetchArgs0.length, 2);
+      assert.equal(fetchArgs0[0], url);
+      assert.deepEqual(fetchArgs0[1], args);
       return result;
     });
   });
