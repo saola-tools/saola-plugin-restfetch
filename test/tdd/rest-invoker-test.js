@@ -99,6 +99,10 @@ describe("utils:rest-invoker", function() {
       } catch (err) {
         false && console.log(JSON.stringify(err.payload));
         assert.equal(err.name, "RetryRecallIsTimeout");
+        assert.isObject(err.payload);
+        assert.property(err.payload, "now");
+        assert.property(err.payload, "expiredTime");
+        assert.isTrue(new Date(err.payload.expiredTime) < new Date(err.payload.now));
       }
     });
   });
