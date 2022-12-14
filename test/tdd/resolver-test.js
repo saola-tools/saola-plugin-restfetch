@@ -287,6 +287,7 @@ describe("resolver", function() {
     it("skip the retry-loop if the waiting.enabled is false");
 
     it("must invoke the restInvoker.fetch() function", function() {
+      const target = {};
       const methodName = "sendSMS";
       const methodDescriptor = {
         method: "GET",
@@ -335,6 +336,34 @@ describe("resolver", function() {
         assert.equal(fetchArgs[0], "http://api.twilio.com/v2/?Accesskey=AABBCCDD&Type=EXT&PhoneNumber=0987654321&Text=Hello%20world");
         assert.deepEqual(fetchArgs[1], { "agent": null, "method": "GET", "headers": {} });
       });
+    });
+
+    it("must process the failed response properly", async function() {
+      const target = {};
+      const methodName = "sendMMS";
+      const methodDescriptor = {
+        method: "GET",
+        url: "http://api.twilio.com/v2/",
+        arguments: {
+          default: {
+            query: { Accesskey: "AABBCCDD", Type: "EXT" }
+          },
+          transform: function(PhoneNumber, Text) {
+            return { query: { PhoneNumber, Text } };
+          }
+        }
+      };
+      const obj = registerMethod(ctx, target, methodName, methodDescriptor, methodContext);
+      assert.equal(obj, target);
+      assert.isFunction(obj.sendMMS);
+
+      restInvoker.fetch.returns(Promise.reject(new BusinessError("InvalidInputError", "Invalid input data")));
+
+      try {
+        await obj.sendMMS("0987654321", "Hello world");
+      } catch (err) {
+        assert.instanceOf(err, BusinessError);
+      }
     });
 
     it("must invoke the getTicket/releaseTicket function");
@@ -405,6 +434,11 @@ describe("resolver", function() {
       assert.instanceOf(fa.error, Error);
       assert.isUndefined(fa.url);
       assert.isUndefined(fa.args);
+    });
+
+    it("throw the Error if descriptor.method is invalid", function() {
+      const fa = buildFetchArgs({}, { method: true }, methodArgs);
+      assert.instanceOf(fa.error, Error);
     });
 
     it("build the fetch parameters from the arguments in which the pathname is undefined", function() {
