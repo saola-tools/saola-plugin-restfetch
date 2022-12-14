@@ -234,4 +234,82 @@ describe("counselor", function() {
       assert.deepEqual(c.mappings, expected);
     });
   });
+
+  describe("idGenerator()", function() {
+    let Counselor, idGenerator;
+
+    beforeEach(function() {
+      Counselor = mockit.acquire("counselor", { libraryDir });
+      idGenerator = mockit.get(Counselor, "idGenerator");
+    });
+
+    it("idGenerator() will return null if fileinfo contains the [standalone] property", function() {
+      assert.isNull(idGenerator("my-mapping", { standalone: true }));
+    });
+
+    it("idGenerator() will return a service reference ID properly", function() {
+      assert.equal(idGenerator("my-mapping", { name: "restfront-api" }), "my-mapping/restfrontApi");
+    });
+  });
+
+  describe("sanitizeMappings()", function() {
+    let Counselor, sanitizeMappings;
+
+    const exampleMappings = {
+      "restfetch-example/githubApi": {
+        enabled: true,
+        methods: {
+          getListBranches: {
+            method: "GET",
+            url: "https://api.github.com/repos/:owner/:repoId/branches",
+            urlObject: {
+              protocol: "https",
+              host: "api.github.com",
+              hostname: "api.github.com"
+            },
+            arguments: {
+              default: {
+                headers: {
+                  "content-type": "application/json",
+                  "x-access-token": "A8Ytr54o0Mn",
+                }
+              }
+            }
+          },
+          getProjectInfo: {
+            method: "GET",
+            url: "https://api.github.com/repos/:userOrOrgan/:projectId",
+            arguments: {
+              default: {
+                params: {
+                  userOrOrgan: "apporo",
+                  projectId: "app-restfront"
+                },
+                query: {}
+              }
+            }
+          }
+        }
+      }
+    };
+
+    const expected = lodash.cloneDeep(exampleMappings);
+    lodash.set(expected, ["restfetch-example/githubApi", "methods", "getListBranches", "urlObject"], {
+      "protocol": "https",
+      "host": null,
+      "hostname": "api.github.com",
+      "port": "443"
+    });
+
+    beforeEach(function() {
+      Counselor = mockit.acquire("counselor", { libraryDir });
+      sanitizeMappings = mockit.get(Counselor, "sanitizeMappings");
+    });
+
+    it("sanitizeMappings() will sanitize the urlObject properly", function() {
+      const result = sanitizeMappings(exampleMappings);
+      false && console.log(JSON.stringify(result, null, 2));
+      assert.deepEqual(result, expected);
+    });
+  });
 });

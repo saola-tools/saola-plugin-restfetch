@@ -17,6 +17,116 @@ describe("resolver", function() {
   const app = require(path.join(__dirname, "../app"));
   const sandboxConfig = lodash.get(app.config, ["sandbox", "default", "plugins", "appRestfetch"]);
 
+  describe("constructor()", function() {
+    const packageName = "app-restfetch";
+    const loggingFactory = mockit.createLoggingFactoryMock({ captureMethodCall: false });
+    const sandboxConfig = {};
+    const counselor = {
+      mappings: {
+        "restfetch-example/githubApi": {
+          enabled: true,
+          methods: {
+            getListBranches: {
+              method: "GET",
+              url: "https://api.github.com/repos/:owner/:repoId/branches",
+              urlObject: {
+                protocol: "https",
+                host: "api.github.com",
+                hostname: "api.github.com"
+              },
+              arguments: {
+                default: {
+                  headers: {
+                    "content-type": "application/json",
+                    "x-access-token": "A8Ytr54o0Mn",
+                  }
+                }
+              }
+            },
+            getProjectInfo: {
+              method: "GET",
+              url: "https://api.github.com/repos/:userOrOrgan/:projectId",
+              arguments: {
+                default: {
+                  params: {
+                    userOrOrgan: "apporo",
+                    projectId: "app-restfront"
+                  },
+                  query: {}
+                }
+              }
+            }
+          }
+        }
+      }
+    };
+
+    const errorManager = {
+      register: function(packageName, { errorConstructor, errorCodes } = {}) {
+        return new ErrorBuilder({
+          packageName, errorConstructor, errorCodes, defaultLanguage: "vi"
+        });
+      }
+    };
+
+    const ctx = { packageName, loggingFactory, sandboxConfig, counselor, errorManager };
+
+    let Resolver, resolver;
+
+    beforeEach(function() {
+      Resolver = mockit.acquire("resolver", { libraryDir });
+    });
+
+    it("lookupService() should return a service object", function() {
+      resolver = new Resolver(ctx);
+      const service = resolver.lookupService("restfetch-example/githubApi");
+      assert.isObject(service);
+      assert.isFunction(service.getListBranches);
+      assert.isFunction(service.getProjectInfo);
+    });
+  });
+
+  function ErrorBuilder ({ packageName, errorConstructor, errorCodes, defaultLanguage }) {
+    const packageRef = packageName;
+
+    if (!(typeof errorConstructor === "function" && errorConstructor.prototype instanceof Error)) {
+      errorConstructor = BusinessError;
+    }
+    errorCodes = errorCodes || {};
+
+    this.newError = function(errorName, { payload, language } = {}) {
+      language = language || defaultLanguage;
+      const errInfo = errorCodes[errorName];
+      if (errInfo == null) {
+        return new errorConstructor(errorName, "Error[" + errorName + "] unsupported", {
+          packageRef,
+          returnCode: -1,
+          statusCode: 500,
+          payload: payload
+        });
+      }
+      let msg = errInfo.message || errorName;
+      if (errInfo.messageIn && typeof language === "string") {
+        msg = errInfo.messageIn[language] || msg;
+      }
+      if (payload && typeof payload === "object") {
+        msg = chores.formatTemplate(msg, payload);
+      } else {
+        payload = null;
+      }
+      return new errorConstructor(errorName, msg, {
+        packageRef,
+        returnCode: errInfo.returnCode,
+        statusCode: errInfo.statusCode,
+        payload: payload
+      });
+    };
+
+    this.getDescriptor = function () {
+      return { packageRef, errorConstructor, errorCodes, defaultLanguage };
+    };
+  }
+
   describe("init()", function() {
     const loggingFactory = mockit.createLoggingFactoryMock({ captureMethodCall: false });
     const ctx = {
@@ -159,7 +269,14 @@ describe("resolver", function() {
       restInvoker.fetch = sinon.stub();
     });
 
-    it("skip register method if the methodDescriptor.enabled is false");
+    it("skip register method if the methodDescriptor.enabled is false", function() {
+      const target = {};
+      const methodDescriptor = {
+        enabled: false,
+      };
+      const obj = registerMethod(ctx, target, methodName, methodDescriptor, methodContext);
+      assert.isEmpty(target);
+    });
 
     it("must invoke the Transformer() constructor");
 
