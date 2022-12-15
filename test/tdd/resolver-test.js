@@ -14,8 +14,48 @@ const validator = new schemato.Validator({ schemaVersion: 4 });
 const libraryDir = "./../lib";
 
 describe("resolver", function() {
-  const app = require(path.join(__dirname, "../app"));
-  const sandboxConfig = lodash.get(app.config, ["sandbox", "default", "plugins", "appRestfetch"]);
+  // const app = require(path.join(__dirname, "../app"));
+  // const sandboxConfig = lodash.get(app.config, ["sandbox", "default", "plugins", "appRestfetch"]);
+  // console.log(JSON.stringify(sandboxConfig, null, 2));
+  //
+  const sandboxConfig = {
+    "throughputQuota": 1,
+    "mappingStore": {
+      "restfetch-example": "app-restfetch/test/app/ext/mappings/targets"
+    },
+    "mappings": {
+      "restfetch-example/gatekeeper": {
+        "enabled": true
+      }
+    },
+    "errorCodes": {
+      "RequestTimeoutOnClient": {
+        "message": "Client request timeout",
+        "returnCode": 9001,
+        "statusCode": 408
+      },
+      "RequestAbortedByClient": {
+        "message": "Request was aborted by client",
+        "returnCode": 9002,
+        "statusCode": 408
+      },
+      "RetryRecallIsTimeout": {
+        "message": "Retry request has timeout",
+        "returnCode": 9005,
+        "statusCode": 408
+      },
+      "RetryRecallOverLimit": {
+        "message": "Retry request reachs limit",
+        "returnCode": 9006,
+        "statusCode": 408
+      }
+    },
+    "responseOptions": {
+      "returnCode": {
+        "headerName": "X-Return-Code"
+      }
+    }
+  };
 
   describe("constructor()", function() {
     const packageName = "app-restfetch";
