@@ -1,4 +1,4 @@
-'use strict';
+"use strict";
 
 module.exports = {
   enabled: true,
@@ -8,7 +8,7 @@ module.exports = {
       url: "http://localhost:7979/handshake/auth/update-user",
       arguments: {
         transform: function(data) {
-          console.log('===before [updateUser]: %s', JSON.stringify(data));
+          console.log("===before [updateUser]: %s", JSON.stringify(data));
           return {
             body: data
           };
@@ -17,7 +17,7 @@ module.exports = {
       response: {
         transform: function(res) {
           var obj = res.json();
-          console.log('===after [updateUser]: %s', JSON.stringify(obj));
+          console.log("===after [updateUser]: %s", JSON.stringify(obj));
           return obj;
         }
       },
@@ -28,4 +28,4 @@ module.exports = {
       }
     }
   }
-}
+};

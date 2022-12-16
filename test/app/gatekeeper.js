@@ -1,15 +1,15 @@
-'use strict';
+"use strict";
 
-var path = require('path');
+var path = require("path");
 
-var main = require('devebot').launchApplication({
+var main = require("devebot").launchApplication({
   appRootPath: __dirname
 }, [{
-  name: 'app-restfetch',
-  path: path.join(__dirname, '/../../index.js')
+  name: "app-restfetch",
+  path: path.join(__dirname, "/../../index.js")
 }]);
 
-var resolver = main.runner.getSandboxService('app-restfetch/resolver');
+var resolver = main.runner.getSandboxService("app-restfetch/resolver");
 
 var gatekeeper = resolver.lookupService("restfetch-example/gatekeeper");
 
@@ -20,4 +20,4 @@ gatekeeper.updateUser({
   "lastName":"Trung Truc"
 }).then(function(output) {
   console.log(JSON.stringify(output, null, 2));
-})
+});
