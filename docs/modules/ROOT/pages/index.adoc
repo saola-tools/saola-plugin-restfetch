@@ -1,0 +1,16 @@
+= Tổng quan
+
+`Restfetch` là một thành phần cắm thêm (plugin) của Devebot Platform.
+Mục đích của Restfetch là định nghĩa các đối tượng service mà trong đó, các hàm của nó sẽ được ghép nối (mappings) đến các lời gọi Rest API. Việc cấu hình ghép nối được thực hiện thông qua một tệp cấu hình JSON (JSON configuration file).
+
+Restfetch thường được sử dụng trong trường hợp nhà phát triển muốn bao bọc các lời gọi tới Rest API bằng các function để:
+
+- che chắn bớt những phức tạp trong việc sử dụng Rest API,
+- đồng nhất các Rest API của các nhà cung cấp khác nhau, có cách gọi khác nhau nhưng lại cung cấp chức năng tương đồng nhau (ví dụ gitlab và github, các dịch vụ gửi SMS, ...),
+- tách bạch việc sử dụng với quá trình cập nhật, nâng cấp, sửa đổi về sau của Rest API;
+
+////
+////
+
+== Cấu hình
+
