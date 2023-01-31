@@ -1,6 +1,6 @@
 module.exports = {
   plugins: {
-    appRestfetch: {
+    pluginRestfetch: {
       errorCodes: {
         RequestTimeoutOnClient: {
           message: "Client request timeout",

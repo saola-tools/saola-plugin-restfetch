@@ -1,8 +1,8 @@
 "use strict";
 
-const devebot = require("devebot");
-const chores = devebot.require("chores");
-const lodash = devebot.require("lodash");
+const Devebot = require("@saola/core");
+const chores = Devebot.require("chores");
+const lodash = Devebot.require("lodash");
 const path = require("path");
 
 module.exports = function(targetBundle) {

@@ -1,7 +1,7 @@
 "use strict";
 
-const devebot = require("devebot");
-const Bluebird = devebot.require("bluebird");
+const Devebot = require("@saola/core");
+const Bluebird = Devebot.require("bluebird");
 const assert = require("liberica").assert;
 const mockit = require("liberica").mockit;
 const path = require("path");
@@ -33,7 +33,7 @@ describe("utils:rest-invoker", function() {
       restInvoker = new RestInvoker({
         errorBuilder: errorBuilder,
         loggingFactory: loggingFactory,
-        packageName: "app-restfetch"
+        packageName: "@saola/plugin-restfetch"
       });
     });
 

@@ -1,5 +1,5 @@
-name: app-restfetch
-title: "Devebot Plugin: Restfetch"
+name: saola-plugin-restfetch
+title: "Saola Plugin: Restfetch"
 version: master
 nav:
 - modules/ROOT/nav.adoc

@@ -1,12 +1,12 @@
 "use strict";
 
-const devebot = require("devebot");
-const lodash = devebot.require("lodash");
+const Devebot = require("@saola/core");
+const lodash = Devebot.require("lodash");
 const assert = require("liberica").assert;
 const mockit = require("liberica").mockit;
 const sinon = require("liberica").sinon;
 const path = require("path");
-const BusinessError = require("app-errorlist").BusinessError;
+const BusinessError = require("@saola/plugin-errorlist").BusinessError;
 
 const schemato = Devebot.require("schemato");
 const validator = new schemato.Validator({ schemaVersion: 4 });
@@ -15,13 +15,13 @@ const libraryDir = "./../lib";
 
 describe("resolver", function() {
   // const app = require(path.join(__dirname, "../app"));
-  // const sandboxConfig = lodash.get(app.config, ["sandbox", "default", "plugins", "appRestfetch"]);
+  // const sandboxConfig = lodash.get(app.config, ["sandbox", "default", "plugins", "pluginRestfetch"]);
   // console.log(JSON.stringify(sandboxConfig, null, 2));
   //
   const sandboxConfig = {
     "throughputQuota": 1,
     "mappingStore": {
-      "restfetch-example": "app-restfetch/test/app/ext/mappings/targets"
+      "restfetch-example": "saola-plugin-restfetch/test/app/ext/mappings/targets"
     },
     "mappings": {
       "restfetch-example/gatekeeper": {
@@ -58,7 +58,7 @@ describe("resolver", function() {
   };
 
   describe("constructor()", function() {
-    const packageName = "app-restfetch";
+    const packageName = "@saola/plugin-restfetch";
     const loggingFactory = mockit.createLoggingFactoryMock({ captureMethodCall: false });
     const sandboxConfig = {};
     const counselor = {
@@ -172,7 +172,7 @@ describe("resolver", function() {
     const ctx = {
       L: loggingFactory.getLogger(),
       T: loggingFactory.getTracer(),
-      blockRef: "app-restfetch",
+      blockRef: "@saola/plugin-restfetch",
     };
 
     const services = {};
@@ -212,7 +212,7 @@ describe("resolver", function() {
     const ctx = {
       L: loggingFactory.getLogger(),
       T: loggingFactory.getTracer(),
-      blockRef: "app-restfetch",
+      blockRef: "@saola/plugin-restfetch",
     };
 
     const services = {};
@@ -257,7 +257,7 @@ describe("resolver", function() {
     const ctx = {
       L: loggingFactory.getLogger(),
       T: loggingFactory.getTracer(),
-      blockRef: "app-restfetch/resolver",
+      blockRef: "@saola/plugin-restfetch/resolver",
     };
 
     let Resolver = mockit.acquire("resolver", { libraryDir });
@@ -289,7 +289,7 @@ describe("resolver", function() {
     const ctx = {
       L: loggingFactory.getLogger(),
       T: loggingFactory.getTracer(),
-      blockRef: "app-restfetch",
+      blockRef: "@saola/plugin-restfetch",
       BusinessError,
       errorBuilder,
       responseOptions: sandboxConfig.responseOptions,
@@ -420,7 +420,7 @@ describe("resolver", function() {
     const ctx = {
       L: loggingFactory.getLogger(),
       T: loggingFactory.getTracer(),
-      blockRef: "app-restfetch",
+      blockRef: "@saola/plugin-restfetch",
     };
 
     const methodContext = {
@@ -457,7 +457,7 @@ describe("resolver", function() {
 
     const methodArgs = {
       params: {
-        owner: "devebot",
+        owner: "Devebot",
         repoId: "valvekit"
       },
       query: {
@@ -504,7 +504,7 @@ describe("resolver", function() {
       }, descriptor);
       const fa = buildFetchArgs(methodContext, methodDescriptor, methodArgs);
       assert.isUndefined(fa.error);
-      assert.equal(fa.url, "https://api.github.com/repos/devebot/valvekit?accessToken=0987654321&type[]=api&type[]=sms");
+      assert.equal(fa.url, "https://api.github.com/repos/Devebot/valvekit?accessToken=0987654321&type[]=api&type[]=sms");
       assert.deepEqual(fa.args, {
         agent: undefined,
         method: "GET",
@@ -572,7 +572,7 @@ describe("resolver", function() {
     const ctx = {
       L: loggingFactory.getLogger(),
       T: loggingFactory.getTracer(),
-      blockRef: "app-restfetch",
+      blockRef: "@saola/plugin-restfetch",
     };
     const box = {};
 
@@ -620,7 +620,7 @@ describe("resolver", function() {
 
     const methodArgs = {
       params: {
-        owner: "devebot",
+        owner: "Devebot",
         repoId: "valvekit"
       },
       query: {
@@ -648,7 +648,7 @@ describe("resolver", function() {
           args: methodArgs,
         },
         result: {
-          url: "https://api.github.com/repos/devebot/valvekit?accessToken=0987654321&type[]=api&type[]=sms",
+          url: "https://api.github.com/repos/Devebot/valvekit?accessToken=0987654321&type[]=api&type[]=sms",
         }
       },
       {
@@ -667,7 +667,7 @@ describe("resolver", function() {
           args: methodArgs,
         },
         result: {
-          url: "https://api.github.com/repos/devebot/valvekit?accessToken=0987654321&type[]=api&type[]=sms",
+          url: "https://api.github.com/repos/Devebot/valvekit?accessToken=0987654321&type[]=api&type[]=sms",
         }
       }
     ];

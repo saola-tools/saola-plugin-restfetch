@@ -1,4 +1,4 @@
-# app-restfetch test/app
+# @saola/plugin-restfetch test/app
 
 ## Usage
 
@@ -7,7 +7,7 @@
 Enable the DEBUG and full logging:
 
 ```shell
-export DEBUG=devebot*,app*
+export DEBUG=saola*,app*
 export LOGOLITE_DEBUGLOG_ENABLED=true
 node test/app
 ```

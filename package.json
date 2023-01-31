@@ -1,12 +1,12 @@
 {
-  "name": "app-restfetch",
+  "name": "@saola/plugin-restfetch",
   "version": "0.4.2",
-  "description": "Devebot Functionalify RestAPI layerware",
-  "homepage": "https://github.com/apporo/app-restfetch.git",
+  "description": "Saola Functionalify RestAPI layerware",
+  "homepage": "https://github.com/saolajs/saola-plugin-restfetch.git",
   "author": {
-    "name": "apporo",
-    "email": "apporo@devebot.com",
-    "url": "https://github.com/apporo"
+    "name": "SaolaJS",
+    "email": "contact@saolajs.com",
+    "url": "https://github.com/saolajs"
   },
   "main": "index.js",
   "files": [
@@ -18,31 +18,32 @@
   ],
   "scripts": {
     "clean": "rm -rf ./lib",
-    "clean-modules": "rm -rf ./node_modules && rm ./package-lock.json",
+    "clean-modules": "rm -rf ./node_modules ./package-lock.json",
+    "reset-modules": "npm run clean-modules && npm install --ignore-scripts",
     "bootstrap": "npm install --ignore-scripts; npm --prefix=test install --ignore-scripts",
     "build": "npm exec -- babel ./src -d ./lib",
     "check": "npm exec -- eslint config src index.js",
     "check-silent": "npm exec -- eslint --quiet config src index.js",
-    "pretest": "npm run check-silent && npm run clean && NODE_ENV=${DEVEBOT_NODE_ENV:-test} npm run build",
+    "pretest": "npm run check-silent && npm run clean && NODE_ENV=${SAOLA_NODE_ENV:-test} npm run build",
     "testOnly": "npm --prefix=test exec -- mocha --recursive ./test/tdd/*-test.js ./test/bdd/*-test.js",
     "test": "npm run testOnly",
-    "prepublishOnly": "npm run check-silent && npm run clean && NODE_ENV=${DEVEBOT_NODE_ENV:-production} npm run build",
+    "prepublishOnly": "npm run check-silent && npm run clean && NODE_ENV=${SAOLA_NODE_ENV:-production} npm run build",
     "verify": "npm run prepublishOnly && npm run testOnly"
   },
   "engines": {
     "node": ">=12"
   },
   "keywords": [
-    "devebot",
-    "devebot-plugin"
+    "saola",
+    "saola-plugin"
   ],
   "peerDependencies": {
-    "app-errorlist": "^0.4.0",
-    "devebot": "^0.4.0"
+    "@saola/core": "^0.4.0",
+    "@saola/plugin-errorlist": "^0.4.0"
   },
   "dependencies": {
-    "app-errorlist": "^0.4.0",
-    "devebot": "^0.4.0",
+    "@saola/core": "^0.4.0",
+    "@saola/plugin-errorlist": "^0.4.0",
     "node-fetch": "2.6.7",
     "path-to-regexp": "3.0.0",
     "traverse": "0.6.7",

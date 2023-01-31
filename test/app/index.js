@@ -1,12 +1,12 @@
 "use strict";
 
-var path = require("path");
+const path = require("path");
 
-var app = require("devebot").launchApplication({
+const app = require("@saola/core").launchApplication({
   appRootPath: __dirname
 }, [
   {
-    name: "app-restfetch",
+    name: "@saola/plugin-restfetch",
     path: path.join(__dirname, "/../../index.js")
   }
 ]);

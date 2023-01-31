@@ -1,3 +1,3 @@
-# app-restfetch
+# @saola/plugin-restfetch
 
-> Devebot application restfetch layerware
+> Saola restfetch plugin layerware

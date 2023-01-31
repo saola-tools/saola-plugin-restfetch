@@ -3,7 +3,7 @@
 const https = require("https");
 const url = require("url");
 
-const Devebot = require("devebot");
+const Devebot = require("@saola/core");
 const Bluebird = Devebot.require("bluebird");
 const Injektor = Devebot.require("injektor");
 const chores = Devebot.require("chores");
@@ -50,7 +50,7 @@ function Service (params = {}) {
 
 Service.referenceHash = {
   counselor: "counselor",
-  errorManager: "app-errorlist/manager"
+  errorManager: "@saola/plugin-errorlist/manager"
 };
 
 module.exports = Service;

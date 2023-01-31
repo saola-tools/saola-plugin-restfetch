@@ -1,17 +1,19 @@
 "use strict";
 
-var path = require("path");
+const path = require("path");
 
-var main = require("devebot").launchApplication({
+const main = require("@saola/core").launchApplication({
   appRootPath: __dirname
-}, [{
-  name: "app-restfetch",
-  path: path.join(__dirname, "/../../index.js")
-}]);
+}, [
+  {
+    name: "@saola/plugin-restfetch",
+    path: path.join(__dirname, "/../../index.js")
+  }
+]);
 
-var resolver = main.runner.getSandboxService("app-restfetch/resolver");
+const resolver = main.runner.getSandboxService("@saola/plugin-restfetch/resolver");
 
-var gatekeeper = resolver.lookupService("restfetch-example/gatekeeper");
+const gatekeeper = resolver.lookupService("restfetch-example/gatekeeper");
 
 gatekeeper.updateUser({
   "appType":"agent",

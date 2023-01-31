@@ -1,6 +1,6 @@
 "use strict";
 
-const Devebot = require("devebot");
+const Devebot = require("@saola/core");
 const chores = Devebot.require("chores");
 const lodash = Devebot.require("lodash");
 const traverse = require("traverse");
@@ -32,7 +32,7 @@ function Counselor (params = {}) {
 }
 
 Counselor.referenceHash = {
-  mappingLoader: "devebot/mappingLoader"
+  mappingLoader: "@saola/core/mappingLoader"
 };
 
 module.exports = Counselor;

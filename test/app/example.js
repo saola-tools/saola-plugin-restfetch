@@ -1,16 +1,18 @@
 "use strict";
 
-var path = require("path");
+const path = require("path");
 
-var main = require("devebot").launchApplication({
+const main = require("@saola/core").launchApplication({
   appRootPath: __dirname
-}, [{
-  name: "app-restfetch",
-  path: path.join(__dirname, "/../../index.js")
-}]);
+}, [
+  {
+    name: "@saola/plugin-restfetch",
+    path: path.join(__dirname, "/../../index.js")
+  }
+]);
 
-var resolver = main.runner.getSandboxService("app-restfetch/resolver");
-var githubApi = resolver.lookupService("restfetch-example/githubApi");
+const resolver = main.runner.getSandboxService("@saola/plugin-restfetch/resolver");
+const githubApi = resolver.lookupService("restfetch-example/githubApi");
 githubApi.getListBranches("apporo","app-datastore").then(function(output) {
   console.log(JSON.stringify(output, null, 2));
 });
