@@ -18,9 +18,9 @@
   ],
   "scripts": {
     "clean": "rm -rf ./lib",
-    "clean-modules": "rm -rf ./node_modules ./package-lock.json",
-    "reset-modules": "npm run clean-modules && npm install --ignore-scripts",
-    "bootstrap": "npm install --ignore-scripts; npm --prefix=test install --ignore-scripts",
+    "clean-modules": "rm -rf ./node_modules ./package-lock.json ./test/node_modules ./test/package-lock.json",
+    "setup-modules": "npm install --ignore-scripts; npm --prefix=test install --ignore-scripts",
+    "reset-modules": "npm run clean-modules && npm run setup-modules",
     "build": "npm exec -- babel ./src -d ./lib",
     "check": "npm exec -- eslint config src index.js",
     "check-silent": "npm exec -- eslint --quiet config src index.js",
