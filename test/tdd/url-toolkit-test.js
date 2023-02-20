@@ -69,6 +69,21 @@ describe('utils:url-toolkit', function() {
         }
       },
       {
+        "name": "Case normal 05",
+        "failed": false,
+        "sample": {
+          "urlObject": {
+            "host": "example.com:7979",
+            "hostname": "sample.com"
+          }
+        },
+        "output": {
+          "host": null,
+          "hostname": "sample.com",
+          "port": "7979",
+        }
+      },
+      {
         "name": "Case strict 01",
         "failed": true,
         "sample": {

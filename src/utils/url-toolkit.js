@@ -27,7 +27,7 @@ function sanitizeUrlObject (urlObject, more) {
     urlObject.hostname = urlObject.hostname || hostname;
     //
     let port1 = port && String(port) || DEFAULT_PORT_OF[urlObject.protocol];
-    let port2 = urlObject.port && String(urlObject.port) || DEFAULT_PORT_OF[urlObject.protocol];
+    let port2 = urlObject.port && String(urlObject.port) || port1 || DEFAULT_PORT_OF[urlObject.protocol];
     if (port1 != port2) {
       if (strict) {
         throw new UrlObjectError("urlObject.host is conflicted with urlObject.port");
